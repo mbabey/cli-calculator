@@ -8,7 +8,6 @@ typedef union
 {
     long   l;
     double d;
-    char   c;
 } Value;
 
 typedef enum
@@ -31,37 +30,33 @@ typedef struct
     Type  type;
 } Token;
 
-typedef struct list_node
+typedef struct node
 {
-    Token            token;
-    struct list_node *next;
-    struct list_node *prev;
-} ListNode;
+    Token       token;
+    struct node *right;
+    struct node *left;
+} Node;
 
 typedef struct
 {
-    ListNode *head;
-    ListNode *tail;
+    Node *head;
+    Node *tail;
 } List;
 
 List *tokenize(int token_count, char **expression);
 
-void add_node_to_list(List *list, ListNode *ln);
+void add_node_to_list(List *list, Node *ln);
+
+void free_list(List *list);
 
 int main(int argc, char **argv)
 {
     List *tokens = tokenize(argc - 1, argv + 1);
     
     // Create an AST
+    free_list(tokens);
     // Evaluate the expression
     
-    while (tokens->head != NULL)
-    {
-        tokens->tail = tokens->head;
-        tokens->head = tokens->head->next;
-        free(tokens->tail);
-    }
-    free(tokens);
     
     return 0;
 }
@@ -102,7 +97,7 @@ List *tokenize(int token_count, char **expression)
                 }
             } else
             {
-                t.value.c = curr[j];
+                t.value.l = 0;
                 switch (curr[j])
                 {
                     case '(':
@@ -133,10 +128,10 @@ List *tokenize(int token_count, char **expression)
             
             if (t.type != ignore_t)
             {
-                ListNode *ln = malloc(sizeof(ListNode));
+                Node *ln = malloc(sizeof(Node));
                 ln->token = t;
-                ln->next  = NULL;
-                ln->prev  = NULL;
+                ln->right = NULL;
+                ln->left  = NULL;
                 add_node_to_list(tokens, ln);
             }
         }
@@ -145,12 +140,12 @@ List *tokenize(int token_count, char **expression)
     return tokens;
 }
 
-void add_node_to_list(List *list, ListNode *ln)
+void add_node_to_list(List *list, Node *ln)
 {
     if (list->tail)
     {
-        ln->prev         = list->tail;
-        list->tail->next = ln;
+        ln->left          = list->tail;
+        list->tail->right = ln;
     } else // list is empty.
     {
         list->head = ln;
@@ -158,3 +153,14 @@ void add_node_to_list(List *list, ListNode *ln)
     list->tail = ln;
 }
 
+
+void free_list(List *list)
+{
+    while (list->head != NULL)
+    {
+        list->tail = list->head;
+        list->head = list->head->right;
+        free(list->tail);
+    }
+    free(list);
+}
