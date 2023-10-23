@@ -55,13 +55,6 @@ int main(int argc, char **argv)
     // Create an AST
     // Evaluate the expression
     
-    printf("%d\n", argc);
-    
-    for (int i = 1; i < argc; ++i)
-    {
-        printf("%s\n", *(argv + i));
-    }
-    
     while (tokens->head != NULL)
     {
         tokens->tail = tokens->head;
