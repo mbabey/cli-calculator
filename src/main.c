@@ -43,36 +43,96 @@ typedef struct
     Node *tail;
 } List;
 
-List *tokenize(int token_count, char **expression);
+/**
+ * Tokenize an input string expression.
+ * @param arg_count the number of expression-related command line arguments.
+ * @param expression the input string expression
+ * @return a doubly linked list of tokens
+ */
+List *tokenize(int arg_count, char **expression);
 
-void add_node_to_list(List *list, Node *ln);
+/**
+ * Add a Node to the tail of a doubly linked list
+ * @param list the list to which the node will be added
+ * @param node the node to add
+ */
+void add_node_to_list(List *list, Node *node);
 
+/**
+ * Parse tokens and create an abstract syntax tree based on the following grammar:
+ * expression   -> term
+ * term         -> factor ( ("+" | "-") factor)*
+ * factor       -> primary ( ("*" | "/") primary)*
+ * primary      -> NUMBER | "(" expression ")"
+ * @param tokens the tokens to parse
+ * @return an abstract syntax tree representation of the tokens
+ */
+Node *parse(List *tokens);
+
+Node *expression(Node *curr);
+
+Node *term(Node *curr);
+
+Node *factor(Node *curr);
+
+Node *primary(Node *curr);
+
+/**
+ * Get the result of evaluating the expression stored in the abstract syntax tree.
+ * @param ast the abstract syntax tree
+ * @return pointer to a Token holding the evaluation.
+ */
+Token *evaluate(Node *ast);
+
+/**
+ * Free a doubly linked list.
+ * @param list the list to free.
+ */
 void free_list(List *list);
+
+/**
+ * Free an abstract syntax tree.
+ * @param ast_root the root node of the tree to free.
+ */
+void free_ast(Node *ast_root);
 
 int main(int argc, char **argv)
 {
     List *tokens = tokenize(argc - 1, argv + 1);
     
-    // Create an AST
-    free_list(tokens);
-    // Evaluate the expression
+    Node *ast = parse(tokens);
     
+    free_list(tokens);
+    
+    // Evaluate the expression
+    Token *ans = evaluate(ast);
+    
+    if (ans->type == dub_t)
+    {
+        printf("%lf\n", ans->value.d);
+    } else
+    {
+        printf("%ld\n", ans->value.l);
+    }
+    
+    free_ast(ast);
+    free(ans);
     
     return 0;
 }
 
 #define NUM_BUF_SIZE 16
 
-List *tokenize(int token_count, char **expression)
+List *tokenize(int arg_count, char **expression)
 {
     List *tokens = malloc(sizeof(List));;
     tokens->head = NULL;
     tokens->tail = NULL;
-    for (int i = 0; i < token_count; ++i)
+    for (int i = 0; i < arg_count; ++i)
     {
         char *curr = expression[i];
         
-        for (int j = 0; j < (int) strlen(curr); ++j)
+        for (int j = 0; j < (int) strlen(curr);)
         {
             Token t;
             
@@ -98,7 +158,7 @@ List *tokenize(int token_count, char **expression)
             } else
             {
                 t.value.l = 0;
-                switch (curr[j])
+                switch (curr[j++])
                 {
                     case '(':
                         t.type = lparen_t;
@@ -140,19 +200,160 @@ List *tokenize(int token_count, char **expression)
     return tokens;
 }
 
-void add_node_to_list(List *list, Node *ln)
+void add_node_to_list(List *list, Node *node)
 {
     if (list->tail)
     {
-        ln->left          = list->tail;
-        list->tail->right = ln;
+        node->left        = list->tail;
+        list->tail->right = node;
     } else // list is empty.
     {
-        list->head = ln;
+        list->head = node;
     }
-    list->tail = ln;
+    list->tail = node;
 }
 
+Node *parse(List *tokens)
+{
+    return expression(tokens->head);
+}
+
+// All the builder functions will return a node.
+Node *expression(Node *curr)
+{
+    return term(curr);
+}
+
+Node *term(Node *curr)
+{
+    Node *node;
+    
+    node = factor(curr);
+    
+    if (curr->right && (curr->right->token.type == add_t || curr->right->token.type == sub_t))
+    {
+        Node *left = node;
+        node = malloc(sizeof(Node));
+        Node *right = factor(curr->right->right);
+        node->token.type = curr->right->token.type;
+        node->left       = left;
+        node->right      = right;
+    }
+    
+    return node;
+}
+
+Node *factor(Node *curr)
+{
+    Node *node;
+    
+    node = primary(curr); // Will be NULL if problem.
+    
+    if (curr->right && (curr->right->token.type == mult_t || curr->right->token.type == divi_t))
+    {
+        Node *left = node;
+        node = malloc(sizeof(Node));
+        Node *right = primary(curr->right->right);
+        node->token.type = curr->right->token.type;
+        node->left       = left;
+        node->right      = right;
+    }
+    
+    return node;
+}
+
+Node *primary(Node *curr)
+{
+    Node *node;
+    
+    if (curr->token.type == dub_t || curr->token.type == long_t)
+    {
+        node = malloc(sizeof(Node));
+        node->token.type = curr->token.type;
+        if (node->token.type == dub_t)
+        {
+            node->token.value.d = curr->token.value.d;
+        } else
+        {
+            node->token.value.l = curr->token.value.l;
+        }
+        node->left       = NULL;
+        node->right      = NULL;
+    } else if (curr->token.type == lparen_t)
+    {
+        Node *rparen_checker = curr;
+        while (rparen_checker && rparen_checker->token.type != rparen_t)
+        {
+            rparen_checker = rparen_checker->right;
+        }
+        if (!rparen_checker)
+        {
+            // No right paren exists, error;
+            return NULL;
+        }
+        node = expression(curr->right);
+    } else
+    {
+        node = NULL;
+    }
+    
+    return node;
+}
+
+Token *evaluate(Node *node) // this needs to return a pointer, it just makes more sense that way.
+{
+    Token *left, *right;
+    if (node->left)
+    {
+        left = evaluate(node->left);
+    }
+    if (node->right)
+    {
+        right = evaluate(node->right);
+    }
+    
+    if (node->token.type == long_t || node->token.type == dub_t) // Terminal value.
+    {
+        Token *ret = malloc(sizeof(Token));
+        memcpy(ret, &node->token, sizeof(Token));
+        return ret;
+    }
+    
+    if (left->type == dub_t || right->type == dub_t) // Non-terminal.
+    {
+        if (node->token.type == mult_t)
+        {
+            left->value.d *= right->value.d;
+        } else if (node->token.type == divi_t)
+        {
+            left->value.d /= right->value.d;
+        } else if (node->token.type == add_t)
+        {
+            left->value.d += right->value.d;
+        } else if (node->token.type == sub_t)
+        {
+            left->value.d -= right->value.d;
+        }
+    } else // if type is long
+    {
+        if (node->token.type == mult_t)
+        {
+            left->value.l *= right->value.l;
+        } else if (node->token.type == divi_t)
+        {
+            left->value.l /= right->value.l;
+        } else if (node->token.type == add_t)
+        {
+            left->value.l += right->value.l;
+        } else if (node->token.type == sub_t)
+        {
+            left->value.l -= right->value.l;
+        }
+    }
+    
+    free(right);
+    return left;
+}
 
 void free_list(List *list)
 {
@@ -163,4 +364,11 @@ void free_list(List *list)
         free(list->tail);
     }
     free(list);
+}
+
+void free_ast(Node *ast)
+{
+    if (ast->left) free_ast(ast->left);
+    if (ast->right) free_ast(ast->right);
+    free(ast);
 }
