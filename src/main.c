@@ -9,6 +9,10 @@
  *  - Add support for exponents
  *  - Add support for negative numbers
  *  - Add support for nested parentheses
+ *  - Handle errors: tokenizing, parsing, evaluating
+ *  - Program does not produce correct answer when run on command line? (multiple args presents problem)
+ *      - Prints every file in the directory when '*' is used unless escaped.
+ *      - Add -help or -h flag to offer instructions of use.
  */
 
 typedef union
@@ -128,7 +132,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-#define NUM_BUF_SIZE 16
+#define NUM_BUF_SIZE 16 // Support up to 15-digit numerical values.
 
 List *tokenize(int arg_count, char **expression)
 {
@@ -145,7 +149,7 @@ List *tokenize(int arg_count, char **expression)
             
             if (isdigit(curr[j]) || curr[j] == '.')
             {
-                char buf[NUM_BUF_SIZE] = {'\0'}; // Support up to 15-character numerical values.
+                char buf[NUM_BUF_SIZE] = {'\0'};
                 int  buf_i             = 0;
                 bool is_dub = false;
                 while (buf_i < NUM_BUF_SIZE && (isdigit(curr[j]) || curr[j] == '.'))
