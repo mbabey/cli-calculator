@@ -69,13 +69,13 @@ void add_node_to_list(List *list, Node *node);
  */
 Node *parse(List *tokens);
 
-Node *expression(Node *curr);
+Node *expression(Node **curr);
 
-Node *term(Node *curr);
+Node *term(Node **curr);
 
-Node *factor(Node *curr);
+Node *factor(Node **curr);
 
-Node *primary(Node *curr);
+Node *primary(Node **curr);
 
 /**
  * Get the result of evaluating the expression stored in the abstract syntax tree.
@@ -215,83 +215,87 @@ void add_node_to_list(List *list, Node *node)
 
 Node *parse(List *tokens)
 {
-    return expression(tokens->head);
+    Node *curr = tokens->head;
+    return expression(&curr);
 }
 
-// All the builder functions will return a node.
-Node *expression(Node *curr)
+Node *expression(Node **curr) // Current MUST be updated.
 {
     return term(curr);
 }
 
-Node *term(Node *curr)
+Node *term(Node **curr)
 {
     Node *node;
     
     node = factor(curr);
     
-    if (curr->right && (curr->right->token.type == add_t || curr->right->token.type == sub_t))
+    while ((*curr)->right && ((*curr)->right->token.type == add_t || (*curr)->right->token.type == sub_t))
     {
         Node *left = node;
         node = malloc(sizeof(Node));
-        Node *right = factor(curr->right->right);
-        node->token.type = curr->right->token.type;
+        node->token.type = (*curr)->right->token.type;
         node->left       = left;
+        *curr = (*curr)->right->right;
+        Node *right = factor(curr);
         node->right      = right;
     }
     
     return node;
 }
 
-Node *factor(Node *curr)
+Node *factor(Node **curr)
 {
     Node *node;
     
     node = primary(curr); // Will be NULL if problem.
     
-    if (curr->right && (curr->right->token.type == mult_t || curr->right->token.type == divi_t))
+    while ((*curr)->right && ((*curr)->right->token.type == mult_t || (*curr)->right->token.type == divi_t))
     {
         Node *left = node;
         node = malloc(sizeof(Node));
-        Node *right = primary(curr->right->right);
-        node->token.type = curr->right->token.type;
+        node->token.type = (*curr)->right->token.type;
         node->left       = left;
+        *curr = (*curr)->right->right;
+        Node *right = primary(curr);
         node->right      = right;
     }
     
     return node;
 }
 
-Node *primary(Node *curr)
+Node *primary(Node **curr)
 {
     Node *node;
     
-    if (curr->token.type == dub_t || curr->token.type == long_t)
+    if ((*curr)->token.type == dub_t || (*curr)->token.type == long_t)
     {
         node = malloc(sizeof(Node));
-        node->token.type = curr->token.type;
+        node->token.type = (*curr)->token.type;
         if (node->token.type == dub_t)
         {
-            node->token.value.d = curr->token.value.d;
+            node->token.value.d = (*curr)->token.value.d;
         } else
         {
-            node->token.value.l = curr->token.value.l;
+            node->token.value.l = (*curr)->token.value.l;
         }
         node->left       = NULL;
         node->right      = NULL;
-    } else if (curr->token.type == lparen_t)
+    } else if ((*curr)->token.type == lparen_t)
     {
-        Node *rparen_checker = curr;
-        while (rparen_checker && rparen_checker->token.type != rparen_t)
+        *curr = (*curr)->right;
+        node = expression(curr);
+        Node *rparen = (*curr);
+        while (rparen && rparen->token.type != rparen_t)
         {
-            rparen_checker = rparen_checker->right;
+            rparen = rparen->right;
         }
-        if (!rparen_checker)
+        if (!rparen)
         {
-            // No right paren exists, error;
+            (void) fprintf(stderr, "Unmatched parenthesis in expression.\n");
             return NULL;
         }
-        node = expression(curr->right);
+        *curr = rparen;
     } else
     {
         node = NULL;
@@ -300,7 +304,7 @@ Node *primary(Node *curr)
     return node;
 }
 
-Token *evaluate(Node *node) // this needs to return a pointer, it just makes more sense that way.
+Token *evaluate(Node *node)
 {
     Token *left, *right;
     if (node->left)
