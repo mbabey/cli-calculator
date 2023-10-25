@@ -8,7 +8,7 @@
  *  - Documentation
  *  - Add support for exponents
  *  - Add support for negative numbers
- *  - Test nested parentheses
+ *  - Add support for nested parentheses
  */
 
 typedef union
