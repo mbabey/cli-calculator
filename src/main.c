@@ -4,6 +4,13 @@
 #include <string.h>
 #include <stdbool.h>
 
+/* TODO:
+ *  - Documentation
+ *  - Add support for exponents
+ *  - Add support for negative numbers
+ *  - Test nested parentheses
+ */
+
 typedef union
 {
     long   l;
