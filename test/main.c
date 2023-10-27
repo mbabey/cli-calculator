@@ -4,10 +4,9 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <math.h>
 #include <string.h>
 
-#define BUF_OUTPUT_SIZE 64
+#define BUF_OUTPUT_SIZE 128
 
 struct TestCase
 {
@@ -16,19 +15,23 @@ struct TestCase
     char actual_output[BUF_OUTPUT_SIZE];
 };
 
-#define NUM_TESTS 5 // The number of test cases.
+#define NUM_TESTS 7 // The number of test cases.
 
 struct TestCase *create_test_cases(void);
 
-void create_test_case_1(struct TestCase *test_case);
+void test_case_1(struct TestCase *test_case);
 
-void create_test_case_2(struct TestCase *test_case);
+void test_case_2(struct TestCase *test_case);
 
-void create_test_case_3(struct TestCase *test_case);
+void test_case_3(struct TestCase *test_case);
 
-void create_test_case_4(struct TestCase *test_case);
+void test_case_4(struct TestCase *test_case);
 
-void create_test_case_5(struct TestCase *test_case);
+void test_case_5(struct TestCase *test_case);
+
+void test_case_6(struct TestCase *test_case);
+
+void test_case_7(struct TestCase *test_case);
 
 char **assemble_input(size_t num_args, ...);
 
@@ -65,48 +68,64 @@ struct TestCase *create_test_cases(void)
     test_cases = malloc(sizeof(struct TestCase) * NUM_TESTS);
     
     int offset = 0;
-    create_test_case_1(test_cases + offset++);
-    create_test_case_2(test_cases + offset++);
-    create_test_case_3(test_cases + offset++);
-    create_test_case_4(test_cases + offset++);
-    create_test_case_5(test_cases + offset++);
+    test_case_1(test_cases + offset++);
+    test_case_2(test_cases + offset++);
+    test_case_3(test_cases + offset++);
+    test_case_4(test_cases + offset++);
+    test_case_5(test_cases + offset++);
+    test_case_6(test_cases + offset++);
+    test_case_7(test_cases + offset++);
     
     return test_cases;
 }
 
-void create_test_case_1(struct TestCase *test_case)
+void test_case_1(struct TestCase *test_case)
 {
     long ans = (6000 - 321) / 11;
     test_case->input = assemble_input(1, "(6000 - 321) / 11");
     sprintf(test_case->expected_output, "%ld", ans);
 }
 
-void create_test_case_2(struct TestCase *test_case)
+void test_case_2(struct TestCase *test_case)
 {
     long ans = 2 * 3 * 4 * 5;
     test_case->input = assemble_input(5, "2", "*", "3", "*", "4");
     sprintf(test_case->expected_output, "%ld", ans);
 }
 
-void create_test_case_3(struct TestCase *test_case)
+void test_case_3(struct TestCase *test_case)
 {
     double ans = (6000.0 - 321.0) / 11;
     test_case->input = assemble_input(1, "(6000.0 - 321.0) / 11");
     sprintf(test_case->expected_output, "%lf", ans);
 }
 
-void create_test_case_4(struct TestCase *test_case)
+void test_case_4(struct TestCase *test_case)
 {
     long ans = 0;
     test_case->input = assemble_input(1, "0");
     sprintf(test_case->expected_output, "%ld", ans);
 }
 
-void create_test_case_5(struct TestCase *test_case)
+void test_case_5(struct TestCase *test_case)
 {
     long ans = -69 + 420;
     test_case->input = assemble_input(2, "-69", " +420");
     sprintf(test_case->expected_output, "%ld", ans);
+}
+
+void test_case_6(struct TestCase *test_case)
+{
+    long ans = (42 * (62 + 20));
+    test_case->input = assemble_input(1, "(42 * (62 + 20)");
+    sprintf(test_case->expected_output, "%ld", ans);
+}
+
+void test_case_7(struct TestCase *test_case)
+{
+    double ans = ((-20 - 2) / 2.5) + 14;
+    test_case->input = assemble_input(2, "((-20 - 2) / 2.5) + 14");
+    sprintf(test_case->expected_output, "%lf", ans);
 }
 
 char **assemble_input(size_t num_args, ...)
