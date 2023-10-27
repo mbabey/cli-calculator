@@ -6,6 +6,7 @@
 
 /* TODO:
  *  - Documentation
+ *  - README.md
  *  - Add support for exponents
  *  - Add support for negative numbers
  *  - Add support for nested parentheses
