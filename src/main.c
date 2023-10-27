@@ -304,7 +304,7 @@ Node *primary(Node **curr)
         }
         if (!rparen)
         {
-            (void) fprintf(stderr, "Unmatched parenthesis in expression.\n");
+            (void) fprintf(stdout, "Unmatched parenthesis in expression.\n");
             return NULL;
         }
         *curr = rparen;

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <errno.h>
 
 #define BUF_OUTPUT_SIZE 128
 
@@ -35,9 +36,9 @@ void test_case_7(struct TestCase *test_case);
 
 char **assemble_input(size_t num_args, ...);
 
-void run_tests(struct TestCase *test_cases);
+pid_t run_tests(struct TestCase *test_cases);
 
-void run_test(struct TestCase *test_case, int pipe_r);
+pid_t run_test(struct TestCase *test_case, int pipe_r);
 
 void report(struct TestCase *test_cases);
 
@@ -51,11 +52,19 @@ int main(void)
         return 1;
     }
     
-    run_tests(test_cases);
+    pid_t id = run_tests(test_cases);
     
-    report(test_cases);
+    if (id > 0)
+    {
+        report(test_cases);
+    }
     
     free_test_cases(test_cases);
+    
+    if (id == -1)
+    {
+        return 1;
+    }
     
     return 0;
 }
@@ -150,27 +159,34 @@ char **assemble_input(size_t num_args, ...)
 #define READ 0
 #define WRITE 1
 
-void run_tests(struct TestCase *test_cases)
+pid_t run_tests(struct TestCase *test_cases)
 {
     int ret_val;
     int res_pipe[2];
+    
     ret_val = pipe(res_pipe);
     if (ret_val == -1)
     {
         // Error.
-        return;
+        return 0;
     }
+    
+    pid_t id = 1;
     
     int stdout_std = dup(STDOUT_FILENO);
     dup2(res_pipe[WRITE], STDOUT_FILENO);
-    for (int offset = 0; offset < NUM_TESTS; ++offset)
+    for (int offset = 0; id > 0 && offset < NUM_TESTS; ++offset)
     {
-        run_test(test_cases + offset, res_pipe[READ]);
+        id = run_test(test_cases + offset, res_pipe[READ]);
     }
     dup2(stdout_std, STDOUT_FILENO);
+    close(res_pipe[READ]);
+    close(res_pipe[WRITE]);
+    
+    return id;
 }
 
-void run_test(struct TestCase *test_case, int pipe_r)
+pid_t run_test(struct TestCase *test_case, int pipe_r)
 {
     int   ret_val;
     pid_t id;
@@ -178,19 +194,28 @@ void run_test(struct TestCase *test_case, int pipe_r)
     id = fork();
     if (id == 0) // Child.
     {
-        ret_val = execv("../math", test_case->input);
+        ret_val = execv("/Users/mud/Projects/cProjects/cmd-line-calculator/math", test_case->input);
         if (ret_val == -1)
         {
-            return;
+            fprintf(stderr, "Error %d: %s\n", errno, strerror(errno));
+            return -1;
         }
     } else // Parent.
     {
         ssize_t bytes_read;
+        int     stat_val;
         
-        waitpid(id, NULL, 0);
-        bytes_read = read(pipe_r, test_case->actual_output, BUF_OUTPUT_SIZE - 1);
-        test_case->expected_output[bytes_read] = '\0';
+        waitpid(id, &stat_val, 0);
+        if (WIFEXITED(stat_val) && WEXITSTATUS(stat_val) == 0)
+        {
+            bytes_read = read(pipe_r, test_case->actual_output, BUF_OUTPUT_SIZE - 1);
+            test_case->actual_output[bytes_read] = '\0';
+        } else
+        {
+            sprintf(test_case->actual_output, "Error occurred during execution.");
+        }
     }
+    return id;
 }
 
 void report(struct TestCase *test_cases)
@@ -202,7 +227,7 @@ void report(struct TestCase *test_cases)
     num_passed = NUM_TESTS;
     for (int offset = 0; offset < NUM_TESTS; ++offset)
     {
-        if (!strcmp((test_cases + offset)->actual_output, (test_cases + offset)->expected_output))
+        if (strcmp((test_cases + offset)->actual_output, (test_cases + offset)->expected_output) != 0)
         {
             all_passed = false;
             --num_passed;
