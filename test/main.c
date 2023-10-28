@@ -8,10 +8,12 @@
 #include <errno.h>
 
 #define BUF_OUTPUT_SIZE 128
+#define MATH_PROGRAM_FILENAME "/Users/mud/Projects/cProjects/cmd-line-calculator/math"
 
 struct TestCase
 {
     char **input;
+    size_t input_count;
     char expected_output[BUF_OUTPUT_SIZE];
     char actual_output[BUF_OUTPUT_SIZE];
 };
@@ -91,55 +93,62 @@ struct TestCase *create_test_cases(void)
 void test_case_1(struct TestCase *test_case)
 {
     long ans = (6000 - 321) / 11;
-    test_case->input = assemble_input(1, "(6000 - 321) / 11");
-    sprintf(test_case->expected_output, "%ld", ans);
+    test_case->input_count = 1;
+    test_case->input = assemble_input(test_case->input_count, "(6000 - 321) / 11");
+    sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
 void test_case_2(struct TestCase *test_case)
 {
     long ans = 2 * 3 * 4 * 5;
-    test_case->input = assemble_input(5, "2", "*", "3", "*", "4");
-    sprintf(test_case->expected_output, "%ld", ans);
+    test_case->input_count = 7;
+    test_case->input = assemble_input(test_case->input_count, "2", "*", "3", "*", "4", "*", "5");
+    sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
 void test_case_3(struct TestCase *test_case)
 {
     double ans = (6000.0 - 321.0) / 11;
-    test_case->input = assemble_input(1, "(6000.0 - 321.0) / 11");
-    sprintf(test_case->expected_output, "%lf", ans);
+    test_case->input_count = 1;
+    test_case->input = assemble_input(test_case->input_count, "(6000.0 - 321.0) / 11");
+    sprintf(test_case->expected_output, "%lf\n", ans);
 }
 
 void test_case_4(struct TestCase *test_case)
 {
     long ans = 0;
-    test_case->input = assemble_input(1, "0");
-    sprintf(test_case->expected_output, "%ld", ans);
+    test_case->input_count = 1;
+    test_case->input = assemble_input(test_case->input_count, "0");
+    sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
 void test_case_5(struct TestCase *test_case)
 {
     long ans = -69 + 420;
-    test_case->input = assemble_input(2, "-69", " +420");
-    sprintf(test_case->expected_output, "%ld", ans);
+    test_case->input_count = 2;
+    test_case->input = assemble_input(test_case->input_count, "-69", " +420");
+    sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
 void test_case_6(struct TestCase *test_case)
 {
     long ans = (42 * (62 + 20));
-    test_case->input = assemble_input(1, "(42 * (62 + 20)");
-    sprintf(test_case->expected_output, "%ld", ans);
+    test_case->input_count = 1;
+    test_case->input = assemble_input(test_case->input_count, "(42 * (62 + 20))");
+    sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
 void test_case_7(struct TestCase *test_case)
 {
     double ans = ((-20 - 2) / 2.5) + 14;
-    test_case->input = assemble_input(2, "((-20 - 2) / 2.5) + 14");
-    sprintf(test_case->expected_output, "%lf", ans);
+    test_case->input_count = 1;
+    test_case->input = assemble_input(test_case->input_count, "((-20 - 2) / 2.5) + 14");
+    sprintf(test_case->expected_output, "%lf\n", ans);
 }
 
 char **assemble_input(size_t num_args, ...)
 {
-    char **input_array = malloc(sizeof(char *) * num_args);
+    char **input_array = malloc(sizeof(char *) * (num_args + 2));
     if (!input_array)
     {
         return NULL;
@@ -147,11 +156,12 @@ char **assemble_input(size_t num_args, ...)
     
     va_list args;
     va_start(args, num_args);
-    
-    for (size_t i = 0; i < num_args; ++i)
+    *(input_array) = strdup(MATH_PROGRAM_FILENAME);
+    for (size_t i = 1; i <= num_args; ++i)
     {
         *(input_array + i) = va_arg(args, char *);
     }
+    *(input_array + num_args + 1) = NULL;
     
     return input_array;
 }
@@ -206,6 +216,7 @@ pid_t run_test(struct TestCase *test_case, int pipe_r)
         int     stat_val;
         
         waitpid(id, &stat_val, 0);
+        fprintf(stderr, "%d\n", stat_val);
         if (WIFEXITED(stat_val) && WEXITSTATUS(stat_val) == 0)
         {
             bytes_read = read(pipe_r, test_case->actual_output, BUF_OUTPUT_SIZE - 1);
@@ -231,8 +242,13 @@ void report(struct TestCase *test_cases)
         {
             all_passed = false;
             --num_passed;
-            printf("[!] Test %d failed:\n\tExpected output: %s\n\tActual output: %s\n",
-                   offset + 1, (test_cases + offset)->expected_output, (test_cases + offset)->actual_output);
+            printf("[!] Test %d failed:\n\tInput: [%s", offset + 1, *((test_cases + offset)->input + 1));
+            for (size_t i = 2; i <= (test_cases + offset)->input_count; ++i)
+            {
+                printf(", %s", *((test_cases + offset)->input + i));
+            }
+            printf("]\n\tExpected output: %s\tActual output: %s",
+                   (test_cases + offset)->expected_output, (test_cases + offset)->actual_output);
         }
     }
     
@@ -249,6 +265,7 @@ void free_test_cases(struct TestCase *test_cases)
 {
     for (int offset = NUM_TESTS - 1; offset >= 0; --offset)
     {
+        free(*((test_cases + offset)->input));
         free((test_cases + offset)->input);
     }
     free(test_cases);
