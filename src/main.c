@@ -6,14 +6,11 @@
 
 /* TODO:
  *  - Documentation
- *  - README.md
  *  - Add support for exponents
  *  - Add support for negative numbers
  *  - Add support for nested parentheses
  *  - Handle errors: tokenizing, parsing, evaluating
- *  - Program does not produce correct answer when run on command line? (multiple args presents problem)
- *      - Prints every file in the directory when '*' is used unless escaped.
- *      - Add -help or -h flag to offer instructions of use.
+ *  - Add -help or -h flag to offer instructions of use.
  */
 
 typedef union
@@ -81,12 +78,32 @@ void add_node_to_list(List *list, Node *node);
  */
 Node *parse(List *tokens);
 
+/**
+ * Parse an expression from the input.
+ * @param curr the current token
+ * @return the root Node of the expression
+ */
 Node *expression(Node **curr);
 
+/**
+ * Parse a term from an expression.
+ * @param curr the current token
+ * @return the root Node of the term
+ */
 Node *term(Node **curr);
 
+/**
+ * Parse a factor from an term.
+ * @param curr the current token
+ * @return the root Node of the factor
+ */
 Node *factor(Node **curr);
 
+/**
+ * Parse a primary from a factor.
+ * @param curr the current token
+ * @return the primary as a Node, or the root Node of a parenthesized expression
+ */
 Node *primary(Node **curr);
 
 /**
@@ -95,6 +112,18 @@ Node *primary(Node **curr);
  * @return pointer to a Token holding the evaluation.
  */
 Token *evaluate(Node *ast);
+
+/**
+ * Perform a mathematical operation based on the parameter Tokens and store the result in left.
+ * The operation (multiply, divide, add, subtract) is stored in operation. The left and right
+ * operands are stored in left and right. If either left or right is a double, the result
+ * will be returned as a double.
+ * @param operation Token holding the operation to perform
+ * @param left Token holding the left operand
+ * @param right Token holding the right operand
+ * @return a pointer to the Token holding the result
+ */
+void do_math(Token *operation, Token *left, Token *right);
 
 /**
  * Free a doubly linked list.
@@ -249,7 +278,7 @@ Node *term(Node **curr)
         node->left       = left;
         *curr = (*curr)->right->right;
         Node *right = factor(curr);
-        node->right      = right;
+        node->right = right;
     }
     
     return node;
@@ -269,7 +298,7 @@ Node *factor(Node **curr)
         node->left       = left;
         *curr = (*curr)->right->right;
         Node *right = primary(curr);
-        node->right      = right;
+        node->right = right;
     }
     
     return node;
@@ -334,40 +363,76 @@ Token *evaluate(Node *node)
         return ret;
     }
     
-    if (left->type == dub_t || right->type == dub_t) // Non-terminal.
+    do_math(&node->token, left, right);
+    free(right);
+    
+    return left;
+}
+
+void do_math(Token *operation, Token *left, Token *right)
+{
+    if (left->type == dub_t && right->type == long_t)
     {
-        if (node->token.type == mult_t)
+        if (operation->type == mult_t)
+        {
+            left->value.d *= (double) right->value.l;
+        } else if (operation->type == divi_t)
+        {
+            left->value.d /= (double) right->value.l;
+        } else if (operation->type == add_t)
+        {
+            left->value.d += (double) right->value.l;
+        } else if (operation->type == sub_t)
+        {
+            left->value.d -= (double) right->value.l;
+        }
+    } else if (left->type == long_t && right->type == dub_t)
+    {
+        left->type = dub_t;
+        if (operation->type == mult_t)
+        {
+            left->value.d = (double) left->value.l * right->value.d;
+        } else if (operation->type == divi_t)
+        {
+            left->value.d = (double) left->value.l / right->value.d;
+        } else if (operation->type == add_t)
+        {
+            left->value.d = (double) left->value.l + right->value.d;
+        } else if (operation->type == sub_t)
+        {
+            left->value.d = (double) left->value.l - right->value.d;
+        }
+    } else if (left->type == dub_t && right->type == dub_t)
+    {
+        if (operation->type == mult_t)
         {
             left->value.d *= right->value.d;
-        } else if (node->token.type == divi_t)
+        } else if (operation->type == divi_t)
         {
             left->value.d /= right->value.d;
-        } else if (node->token.type == add_t)
+        } else if (operation->type == add_t)
         {
             left->value.d += right->value.d;
-        } else if (node->token.type == sub_t)
+        } else if (operation->type == sub_t)
         {
             left->value.d -= right->value.d;
         }
-    } else // if type is long
+    } else // left == long && right == long
     {
-        if (node->token.type == mult_t)
+        if (operation->type == mult_t)
         {
             left->value.l *= right->value.l;
-        } else if (node->token.type == divi_t)
+        } else if (operation->type == divi_t)
         {
             left->value.l /= right->value.l;
-        } else if (node->token.type == add_t)
+        } else if (operation->type == add_t)
         {
             left->value.l += right->value.l;
-        } else if (node->token.type == sub_t)
+        } else if (operation->type == sub_t)
         {
             left->value.l -= right->value.l;
         }
     }
-    
-    free(right);
-    return left;
 }
 
 void free_list(List *list)
