@@ -116,7 +116,6 @@ int main(int argc, char **argv)
     
     free_list(tokens);
     
-    // Evaluate the expression
     Token *ans = evaluate(ast);
     
     if (ans->type == dub_t)

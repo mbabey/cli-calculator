@@ -177,7 +177,6 @@ pid_t run_tests(struct TestCase *test_cases)
     ret_val = pipe(res_pipe);
     if (ret_val == -1)
     {
-        // Error.
         return 0;
     }
     
@@ -204,7 +203,7 @@ pid_t run_test(struct TestCase *test_case, int pipe_r)
     id = fork();
     if (id == 0) // Child.
     {
-        ret_val = execv("/Users/mud/Projects/cProjects/cmd-line-calculator/math", test_case->input);
+        ret_val = execv(MATH_PROGRAM_FILENAME, test_case->input);
         if (ret_val == -1)
         {
             fprintf(stderr, "Error %d: %s\n", errno, strerror(errno));
@@ -216,14 +215,13 @@ pid_t run_test(struct TestCase *test_case, int pipe_r)
         int     stat_val;
         
         waitpid(id, &stat_val, 0);
-        fprintf(stderr, "%d\n", stat_val);
         if (WIFEXITED(stat_val) && WEXITSTATUS(stat_val) == 0)
         {
             bytes_read = read(pipe_r, test_case->actual_output, BUF_OUTPUT_SIZE - 1);
             test_case->actual_output[bytes_read] = '\0';
         } else
         {
-            sprintf(test_case->actual_output, "Error occurred during execution.");
+            sprintf(test_case->actual_output, "Error occurred during execution. Exit code: %d\n", stat_val);
         }
     }
     return id;
