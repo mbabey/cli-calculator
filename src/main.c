@@ -7,8 +7,6 @@
 /* TODO:
  *  - Documentation
  *  - Add support for exponents
- *  - Add support for negative numbers
- *  - Add support for nested parentheses
  *  - Handle errors: tokenizing, parsing, evaluating
  *  - Add -help or -h flag to offer instructions of use.
  */
@@ -266,6 +264,13 @@ Node *expression(Node **curr) // Current MUST be updated.
     return term(curr);
 }
 
+/*
+ * expression -> term
+ * term -> factor *( ("+"|"-") factor)
+ * factor -> expo *( ("*"|"/") expo)
+ * expo -> primary *( "^" primary)
+ * primary -> NUMBER | expression
+ */
 Node *term(Node **curr)
 {
     Node *node;
