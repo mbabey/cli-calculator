@@ -5,13 +5,6 @@
 #include <stdbool.h>
 #include <math.h>
 
-/* TODO:
- *  - Documentation
- *  - Add support for exponents
- *  - Handle errors: tokenizing, parsing, evaluating
- *  - Add -help or -h flag to offer instructions of use.
- */
-
 typedef union
 {
     long   l;
