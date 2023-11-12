@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 
 /* TODO:
  *  - Documentation
@@ -91,14 +92,21 @@ Node *expression(Node **curr);
 Node *term(Node **curr);
 
 /**
- * Parse a factor from an term.
+ * Parse a factor from a term.
  * @param curr the current token
  * @return the root Node of the factor
  */
 Node *factor(Node **curr);
 
 /**
- * Parse a primary from a factor.
+ * Parse an expo from an factor.
+ * @param curr the current token
+ * @return the root Node of the factor
+ */
+Node *expo(Node **curr);
+
+/**
+ * Parse a primary from an expo.
  * @param curr the current token
  * @return the primary as a Node, or the root Node of a parenthesized expression
  */
@@ -295,9 +303,29 @@ Node *factor(Node **curr)
 {
     Node *node;
     
-    node = primary(curr); // Will be NULL if problem.
+    node = expo(curr); // Will be NULL if problem.
     
     while ((*curr)->right && ((*curr)->right->token.type == mult_t || (*curr)->right->token.type == divi_t))
+    {
+        Node *left = node;
+        node = malloc(sizeof(Node));
+        node->token.type = (*curr)->right->token.type;
+        node->left       = left;
+        *curr = (*curr)->right->right;
+        Node *right = expo(curr);
+        node->right = right;
+    }
+    
+    return node;
+}
+
+Node *expo(Node **curr)
+{
+    Node *node;
+    
+    node = primary(curr);
+    
+    while ((*curr)->right && (*curr)->right->token.type == exp_t)
     {
         Node *left = node;
         node = malloc(sizeof(Node));
@@ -380,7 +408,10 @@ void do_math(Token *operation, Token *left, Token *right)
 {
     if (left->type == dub_t && right->type == long_t)
     {
-        if (operation->type == mult_t)
+        if (operation->type == exp_t)
+        {
+            left->value.d = pow(left->value.d, (double) right->value.l);
+        } else if (operation->type == mult_t)
         {
             left->value.d *= (double) right->value.l;
         } else if (operation->type == divi_t)
@@ -396,7 +427,10 @@ void do_math(Token *operation, Token *left, Token *right)
     } else if (left->type == long_t && right->type == dub_t)
     {
         left->type = dub_t;
-        if (operation->type == mult_t)
+        if (operation->type == exp_t)
+        {
+            left->value.d = pow((double) left->value.l, right->value.d);
+        } else if (operation->type == mult_t)
         {
             left->value.d = (double) left->value.l * right->value.d;
         } else if (operation->type == divi_t)
@@ -411,7 +445,10 @@ void do_math(Token *operation, Token *left, Token *right)
         }
     } else if (left->type == dub_t && right->type == dub_t)
     {
-        if (operation->type == mult_t)
+        if (operation->type == exp_t)
+        {
+            left->value.d = pow(left->value.d, right->value.d);
+        } else if (operation->type == mult_t)
         {
             left->value.d *= right->value.d;
         } else if (operation->type == divi_t)
@@ -426,7 +463,10 @@ void do_math(Token *operation, Token *left, Token *right)
         }
     } else // left == long && right == long
     {
-        if (operation->type == mult_t)
+        if (operation->type == exp_t)
+        {
+            left->value.l = (long) pow((double) left->value.l, (double) right->value.l);
+        } else if (operation->type == mult_t)
         {
             left->value.l *= right->value.l;
         } else if (operation->type == divi_t)
