@@ -375,13 +375,15 @@ void report(struct TestCase *test_cases)
         {
             all_passed = false;
             --num_passed;
-            printf("[!] Test %d failed:\n\tInput: [%s", offset + 1, *((test_cases + offset)->input + 1));
+            printf("[!] Test %d failed:\n\tInput: [%s", offset, *((test_cases + offset)->input + 1));
             for (size_t i = 2; i <= (test_cases + offset)->input_count; ++i)
             {
                 printf(", %s", *((test_cases + offset)->input + i));
             }
             printf("]\n\tExpected output: %s\tActual output: %s",
                    (test_cases + offset)->expected_output, (test_cases + offset)->actual_output);
+        } else {
+            printf("[-] Test %d passed.\n", offset);
         }
     }
     
