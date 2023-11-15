@@ -5,12 +5,18 @@
 #include <stdbool.h>
 #include <math.h>
 
+/**
+ * Value union for Tokens.
+ */
 typedef union
 {
     long   l;
     double d;
 } Value;
 
+/**
+ * Types for Tokens.
+ */
 typedef enum
 {
     long_t,
@@ -25,12 +31,18 @@ typedef enum
     ignore_t
 } Type;
 
+/**
+ * Token. Has a Value, representable as a double or a long, and a Type.
+ */
 typedef struct
 {
     Value value;
     Type  type;
 } Token;
 
+/**
+ * Token node, either in a DLL or a tree.
+ */
 typedef struct node
 {
     Token       token;
@@ -38,6 +50,9 @@ typedef struct node
     struct node *left;
 } Node;
 
+/**
+ * Double linked list.
+ */
 typedef struct
 {
     Node *head;
