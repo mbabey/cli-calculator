@@ -256,14 +256,14 @@ void test_case_8(struct TestCase *test_case)
 {
     test_case->input_count = 1;
     test_case->input       = assemble_input(test_case->input_count, "(20 * 8");
-    sprintf(test_case->expected_output, "Unmatched parenthesis found near (20.\n");
+    sprintf(test_case->expected_output, "Unmatched \'(\' in expression.\n");
 }
 
 void test_case_9(struct TestCase *test_case)
 {
     test_case->input_count = 1;
     test_case->input       = assemble_input(test_case->input_count, "20 * 8)");
-    sprintf(test_case->expected_output, "Unmatched parenthesis found near 8).\n");
+    sprintf(test_case->expected_output, "Unmatched \')\' in expression.\n");
 }
 
 
@@ -383,7 +383,7 @@ void report(struct TestCase *test_cases)
             printf("]\n\tExpected output: %s\tActual output: %s",
                    (test_cases + offset)->expected_output, (test_cases + offset)->actual_output);
         } else {
-            printf("[-] Test %d passed.\n", offset);
+            printf("[:] Test %d passed.\n", offset);
         }
     }
     
