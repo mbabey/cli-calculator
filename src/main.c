@@ -1,9 +1,9 @@
+#include <ctype.h>
+#include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
-#include <stdbool.h>
-#include <math.h>
 
 /**
  * Value union for Tokens.
@@ -75,10 +75,24 @@ List *tokenize(int arg_count, char **expression);
 void add_node_to_list(List *list, Node *node);
 
 /**
+ * Validate the user input. Return a relevant error message if an error is found.
+ * @param tokens the tokens to validate
+ * @return an error message if an error is found, otherwise NULL
+ */
+char *validate(List *tokens);
+
+/**
+ * Parse and evaluate validated tokens.
+ * @param tokens the valid list of tokens
+ */
+void execute(List *tokens);
+
+/**
  * Parse tokens and create an abstract syntax tree based on the following grammar:
  * expression   -> term
  * term         -> factor ( ("+" | "-") factor)*
- * factor       -> primary ( ("*" | "/") primary)*
+ * factor       -> expo ( ("*" | "/") expo)*
+ * expo         -> primary ( "^" primary)*
  * primary      -> NUMBER | "(" expression ")"
  * @param tokens the tokens to parse
  * @return an abstract syntax tree representation of the tokens
@@ -122,10 +136,10 @@ Node *primary(Node **curr);
 
 /**
  * Get the result of evaluating the expression stored in the abstract syntax tree.
- * @param ast the abstract syntax tree
+ * @param node the abstract syntax tree
  * @return pointer to a Token holding the evaluation.
  */
-Token *evaluate(Node *ast);
+Token *evaluate(Node *node);
 
 /**
  * Perform a mathematical operation based on the parameter Tokens and store the result in left.
@@ -135,7 +149,6 @@ Token *evaluate(Node *ast);
  * @param operation Token holding the operation to perform
  * @param left Token holding the left operand
  * @param right Token holding the right operand
- * @return a pointer to the Token holding the result
  */
 void do_math(Token *operation, Token *left, Token *right);
 
@@ -155,22 +168,18 @@ int main(int argc, char **argv)
 {
     List *tokens = tokenize(argc - 1, argv + 1);
     
-    Node *ast = parse(tokens);
+    char *error = validate(tokens);
     
-    free_list(tokens);
-    
-    Token *ans = evaluate(ast);
-    
-    if (ans->type == dub_t)
+    if (error)
     {
-        printf("%lf\n", ans->value.d);
+        printf("%s\n", error);
+        free(error);
     } else
     {
-        printf("%ld\n", ans->value.l);
+        execute(tokens);
     }
     
-    free_ast(ast);
-    free(ans);
+    free_list(tokens);
     
     return 0;
 }
@@ -269,24 +278,77 @@ void add_node_to_list(List *list, Node *node)
     list->tail = node;
 }
 
+char *validate(List *tokens)
+{
+    // Scan the list. Count the number of parens. Count the number of operators.
+    int paren_balance = 0;
+    int op_balance    = 0;
+    
+    Node *curr = tokens->head;
+    while (curr)
+    {
+        switch (curr->token.type)
+        {
+            case long_t:
+            case dub_t:
+                ++op_balance;
+                break;
+            case lparen_t:
+                ++paren_balance;
+                break;
+            case rparen_t:
+                --paren_balance;
+                break;
+            default: // +, -, *, /, ^
+                --op_balance;
+        }
+        curr = curr->right;
+    }
+    
+    if (op_balance != 1)
+    {
+        return strdup("Incomplete expression.");
+    }
+    if (paren_balance > 0) // more lparen than rparen.
+    {
+        return strdup("Unmatched \'(\' in expression.");
+    }
+    if (paren_balance < 0) // more rparen than lparen.
+    {
+        return strdup("Unmatched \')\' in expression.");
+    }
+    
+    return NULL; // No error.
+}
+
+void execute(List *tokens)
+{
+    Node  *ast = parse(tokens);
+    Token *ans = evaluate(ast);
+    
+    if (ans->type == dub_t)
+    {
+        printf("%lf\n", ans->value.d);
+    } else
+    {
+        printf("%ld\n", ans->value.l);
+    }
+    
+    free_ast(ast);
+    free(ans);
+}
+
 Node *parse(List *tokens)
 {
     Node *curr = tokens->head;
-    return expression(&curr);
+    return expression(&curr); // Will be NULL if there is an error.
 }
 
-Node *expression(Node **curr) // Current MUST be updated.
+Node *expression(Node **curr)
 {
     return term(curr);
 }
 
-/*
- * expression -> term
- * term -> factor *( ("+"|"-") factor)
- * factor -> expo *( ("*"|"/") expo)
- * expo -> primary *( "^" primary)
- * primary -> NUMBER | expression
- */
 Node *term(Node **curr)
 {
     Node *node;
@@ -311,7 +373,7 @@ Node *factor(Node **curr)
 {
     Node *node;
     
-    node = expo(curr); // Will be NULL if problem.
+    node = expo(curr);
     
     while ((*curr)->right && ((*curr)->right->token.type == mult_t || (*curr)->right->token.type == divi_t))
     {
@@ -351,6 +413,19 @@ Node *primary(Node **curr)
 {
     Node *node;
     
+    if ((*curr)->token.type == lparen_t)
+    {
+        *curr = (*curr)->right;
+        Node *rparen = (*curr);
+        while (rparen && rparen->token.type != rparen_t)
+        {
+            rparen = rparen->right;
+        }
+        node         = expression(curr);
+        *curr = rparen;
+        return node;
+    }
+    
     if ((*curr)->token.type == dub_t || (*curr)->token.type == long_t)
     {
         node = malloc(sizeof(Node));
@@ -364,27 +439,10 @@ Node *primary(Node **curr)
         }
         node->left       = NULL;
         node->right      = NULL;
-    } else if ((*curr)->token.type == lparen_t)
-    {
-        *curr = (*curr)->right;
-        node = expression(curr);
-        Node *rparen = (*curr);
-        while (rparen && rparen->token.type != rparen_t)
-        {
-            rparen = rparen->right;
-        }
-        if (!rparen)
-        {
-            (void) fprintf(stdout, "Unmatched parenthesis in expression.\n");
-            return NULL;
-        }
-        *curr = rparen;
-    } else
-    {
-        node = NULL;
+        return node;
     }
     
-    return node;
+    return NULL;
 }
 
 Token *evaluate(Node *node)
@@ -399,7 +457,7 @@ Token *evaluate(Node *node)
         right = evaluate(node->right);
     }
     
-    if (node->token.type == long_t || node->token.type == dub_t) // Terminal value.
+    if (!node->left && !node->right) // Terminal value.
     {
         Token *ret = malloc(sizeof(Token));
         memcpy(ret, &node->token, sizeof(Token));
@@ -503,7 +561,11 @@ void free_list(List *list)
 
 void free_ast(Node *ast)
 {
-    if (ast->left) free_ast(ast->left);
-    if (ast->right) free_ast(ast->right);
+    if (!ast)
+    {
+        return;
+    }
+    free_ast(ast->left);
+    free_ast(ast->right);
     free(ast);
 }
