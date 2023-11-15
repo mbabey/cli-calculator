@@ -10,40 +10,134 @@
 #define BUF_OUTPUT_SIZE 128
 #define MATH_PROGRAM_FILENAME "/Users/mud/Projects/cProjects/cmd-line-calculator/math"
 
+/**
+ * Stores test parameters. input is argv for the tested program. Expected output can
+ * be checked against actual output.
+ */
 struct TestCase
 {
-    char **input;
+    char   **input;
     size_t input_count;
-    char expected_output[BUF_OUTPUT_SIZE];
-    char actual_output[BUF_OUTPUT_SIZE];
+    char   expected_output[BUF_OUTPUT_SIZE];
+    char   actual_output[BUF_OUTPUT_SIZE];
 };
 
-#define NUM_TESTS 7 // The number of test cases.
+/** The number of test cases. */
+#define NUM_TESTS 12
 
+/**
+ * Create TestCase structs testing program.
+ * @return array of TestCases
+ */
 struct TestCase *create_test_cases(void);
 
+/**
+ * Test order of operations.
+ * @param test_case the TestCase to load
+ */
+void test_case_0(struct TestCase *test_case);
+
+/**
+ * Test parentheses.
+ * @param test_case the TestCase to load
+ */
 void test_case_1(struct TestCase *test_case);
 
+/**
+ * Test multiple argv.
+ * @param test_case the TestCase to load
+ */
 void test_case_2(struct TestCase *test_case);
 
+/**
+ * Test operation containing both doubles and longs.
+ * @param test_case the TestCase to load
+ */
 void test_case_3(struct TestCase *test_case);
 
+/**
+ * Test 0.
+ * @param test_case the TestCase to load
+ */
 void test_case_4(struct TestCase *test_case);
 
+/**
+ * Test negative number.
+ * @param test_case the TestCase to load
+ */
 void test_case_5(struct TestCase *test_case);
 
+/**
+ * Test nested parentheses.
+ * @param test_case the TestCase to load
+ */
 void test_case_6(struct TestCase *test_case);
 
+/**
+ * Test nested parentheses.
+ * @param test_case the TestCase to load
+ */
 void test_case_7(struct TestCase *test_case);
 
+/**
+ * Test unmatched left parentheses.
+ * @param test_case the TestCase to load
+ */
+void test_case_8(struct TestCase *test_case);
+
+/**
+ * Test unmatched right parentheses.
+ * @param test_case the TestCase to load
+ */
+void test_case_9(struct TestCase *test_case);
+
+/**
+ * Test unmatched left unmatched primary. "4 /"
+ * @param test_case the TestCase to load
+ */
+void test_case_10(struct TestCase *test_case);
+
+/**
+ * Test unmatched right unmatched primary. "/ 4"
+ * @param test_case the TestCase to load
+ */
+void test_case_11(struct TestCase *test_case);
+
+/**
+ * Given a list of string arguments, create a argument vector. Prefixes the name of the
+ * program being tested and suffixes NULL.
+ * @param num_args the number of args
+ * @param ... the args
+ * @return pointer to the argument vector
+ */
 char **assemble_input(size_t num_args, ...);
 
+/**
+ * Duplicate stdout to a pipe, then run each test in test_cases. Repair stdout after all tests have run.
+ * @param test_cases the test cases to run.
+ * @return the result of forking the process
+ */
 pid_t run_tests(struct TestCase *test_cases);
 
+/**
+ * Fork this process. In the child, call execv with the arguments in test_case.
+ * In the parent, read the program output from the pipe and store it in actual output.
+ * @param test_case the test to run
+ * @param pipe_r the pipe from which to read the program result
+ * @return the result of forking the process
+ */
 pid_t run_test(struct TestCase *test_case, int pipe_r);
 
+/**
+ * Report the results of the tests. Failed tests will be reported in detail.
+ * @param test_cases the array of TestCases
+ */
 void report(struct TestCase *test_cases);
 
+/**
+ * Free the array of TestCases.
+ * @param test_cases the array of TestCases
+ */
 void free_test_cases(struct TestCase *test_cases);
 
 int main(void)
@@ -71,7 +165,6 @@ int main(void)
     return 0;
 }
 
-
 struct TestCase *create_test_cases(void)
 {
     struct TestCase *test_cases;
@@ -79,6 +172,7 @@ struct TestCase *create_test_cases(void)
     test_cases = malloc(sizeof(struct TestCase) * NUM_TESTS);
     
     int offset = 0;
+    test_case_0(test_cases + offset++);
     test_case_1(test_cases + offset++);
     test_case_2(test_cases + offset++);
     test_case_3(test_cases + offset++);
@@ -86,15 +180,27 @@ struct TestCase *create_test_cases(void)
     test_case_5(test_cases + offset++);
     test_case_6(test_cases + offset++);
     test_case_7(test_cases + offset++);
+    test_case_8(test_cases + offset++);
+    test_case_9(test_cases + offset++);
+    test_case_10(test_cases + offset++);
+    test_case_11(test_cases + offset++);
     
     return test_cases;
+}
+
+void test_case_0(struct TestCase *test_case)
+{
+    long ans = 1 + 2 - 3 * 4 / 5;
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(test_case->input_count, "1 + 2 - 3 * 4 / 5");
+    sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
 void test_case_1(struct TestCase *test_case)
 {
     long ans = (6000 - 321) / 11;
     test_case->input_count = 1;
-    test_case->input = assemble_input(test_case->input_count, "(6000 - 321) / 11");
+    test_case->input       = assemble_input(test_case->input_count, "(6000 - 321) / 11");
     sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
@@ -102,7 +208,7 @@ void test_case_2(struct TestCase *test_case)
 {
     long ans = 2 * 3 * 4 * 5;
     test_case->input_count = 7;
-    test_case->input = assemble_input(test_case->input_count, "2", "*", "3", "*", "4", "*", "5");
+    test_case->input       = assemble_input(test_case->input_count, "2", "*", "3", "*", "4", "*", "5");
     sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
@@ -110,7 +216,7 @@ void test_case_3(struct TestCase *test_case)
 {
     double ans = (6000.0 - 321.0) / 11;
     test_case->input_count = 1;
-    test_case->input = assemble_input(test_case->input_count, "(6000.0 - 321.0) / 11");
+    test_case->input       = assemble_input(test_case->input_count, "(6000.0 - 321.0) / 11");
     sprintf(test_case->expected_output, "%lf\n", ans);
 }
 
@@ -118,7 +224,7 @@ void test_case_4(struct TestCase *test_case)
 {
     long ans = 0;
     test_case->input_count = 1;
-    test_case->input = assemble_input(test_case->input_count, "0");
+    test_case->input       = assemble_input(test_case->input_count, "0");
     sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
@@ -126,7 +232,7 @@ void test_case_5(struct TestCase *test_case)
 {
     long ans = -69 + 420;
     test_case->input_count = 2;
-    test_case->input = assemble_input(test_case->input_count, "-69", " +420");
+    test_case->input       = assemble_input(test_case->input_count, "-69", " +420");
     sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
@@ -134,7 +240,7 @@ void test_case_6(struct TestCase *test_case)
 {
     long ans = (42 * (62 + 20));
     test_case->input_count = 1;
-    test_case->input = assemble_input(test_case->input_count, "(42 * (62 + 20))");
+    test_case->input       = assemble_input(test_case->input_count, "(42 * (62 + 20))");
     sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
@@ -142,8 +248,37 @@ void test_case_7(struct TestCase *test_case)
 {
     double ans = ((-20 - 2) / 2.5) + 14;
     test_case->input_count = 1;
-    test_case->input = assemble_input(test_case->input_count, "((-20 - 2) / 2.5) + 14");
+    test_case->input       = assemble_input(test_case->input_count, "((-20 - 2) / 2.5) + 14");
     sprintf(test_case->expected_output, "%lf\n", ans);
+}
+
+void test_case_8(struct TestCase *test_case)
+{
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(test_case->input_count, "(20 * 8");
+    sprintf(test_case->expected_output, "Unmatched parenthesis found near (20.\n");
+}
+
+void test_case_9(struct TestCase *test_case)
+{
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(test_case->input_count, "20 * 8)");
+    sprintf(test_case->expected_output, "Unmatched parenthesis found near 8).\n");
+}
+
+
+void test_case_10(struct TestCase *test_case)
+{
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(test_case->input_count, "4 /");
+    sprintf(test_case->expected_output, "Incomplete expression.\n");
+}
+
+void test_case_11(struct TestCase *test_case)
+{
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(test_case->input_count, "/ 4");
+    sprintf(test_case->expected_output, "Incomplete expression.\n");
 }
 
 char **assemble_input(size_t num_args, ...)
@@ -157,7 +292,7 @@ char **assemble_input(size_t num_args, ...)
     va_list args;
     va_start(args, num_args);
     *(input_array) = strdup(MATH_PROGRAM_FILENAME);
-    for (size_t i = 1; i <= num_args; ++i)
+    for (size_t i                 = 1; i <= num_args; ++i)
     {
         *(input_array + i) = va_arg(args, char *);
     }
