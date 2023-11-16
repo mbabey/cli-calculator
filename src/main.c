@@ -185,8 +185,7 @@ int main(int argc, char **argv)
     
     if (error)
     {
-        printf("%s\n"
-               "Use \'-h\' or \'-help\' for help.\n", error);
+        printf("%s Use \'-h\' or \'-help\' for help.\n", error);
         free(error);
     } else
     {

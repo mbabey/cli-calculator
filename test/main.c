@@ -7,8 +7,11 @@
 #include <string.h>
 #include <errno.h>
 
-#define BUF_OUTPUT_SIZE 128
+#define BUF_OUTPUT_SIZE 1024
 #define MATH_PROGRAM_FILENAME "/Users/mud/Projects/cProjects/cmd-line-calculator/math"
+
+/** The number of test cases. */
+#define NUM_TESTS 15
 
 /**
  * Stores test parameters. input is argv for the tested program. Expected output can
@@ -21,9 +24,6 @@ struct TestCase
     char   expected_output[BUF_OUTPUT_SIZE];
     char   actual_output[BUF_OUTPUT_SIZE];
 };
-
-/** The number of test cases. */
-#define NUM_TESTS 12
 
 /**
  * Create TestCase structs testing program.
@@ -102,6 +102,24 @@ void test_case_10(struct TestCase *test_case);
  * @param test_case the TestCase to load
  */
 void test_case_11(struct TestCase *test_case);
+
+/**
+ * Test help with "-h"
+ * @param test_case the TestCase to load
+ */
+void test_case_12(struct TestCase *test_case);
+
+/**
+ * Test help with "-help"
+ * @param test_case the TestCase to load
+ */
+void test_case_13(struct TestCase *test_case);
+
+/**
+ * Test help with less than 2 args.
+ * @param test_case the TestCase to load
+ */
+void test_case_14(struct TestCase *test_case);
 
 /**
  * Given a list of string arguments, create a argument vector. Prefixes the name of the
@@ -184,6 +202,9 @@ struct TestCase *create_test_cases(void)
     test_case_9(test_cases + offset++);
     test_case_10(test_cases + offset++);
     test_case_11(test_cases + offset++);
+    test_case_12(test_cases + offset++);
+    test_case_13(test_cases + offset++);
+    test_case_14(test_cases + offset++);
     
     return test_cases;
 }
@@ -256,14 +277,14 @@ void test_case_8(struct TestCase *test_case)
 {
     test_case->input_count = 1;
     test_case->input       = assemble_input(test_case->input_count, "(20 * 8");
-    sprintf(test_case->expected_output, "Unmatched \'(\' in expression.\n");
+    sprintf(test_case->expected_output, "Unmatched \'(\' in expression. Use \'-h\' or \'-help\' for help.\n");
 }
 
 void test_case_9(struct TestCase *test_case)
 {
     test_case->input_count = 1;
     test_case->input       = assemble_input(test_case->input_count, "20 * 8)");
-    sprintf(test_case->expected_output, "Unmatched \')\' in expression.\n");
+    sprintf(test_case->expected_output, "Unmatched \')\' in expression. Use \'-h\' or \'-help\' for help.\n");
 }
 
 
@@ -271,14 +292,92 @@ void test_case_10(struct TestCase *test_case)
 {
     test_case->input_count = 1;
     test_case->input       = assemble_input(test_case->input_count, "4 /");
-    sprintf(test_case->expected_output, "Incomplete expression.\n");
+    sprintf(test_case->expected_output, "Incomplete expression. Use \'-h\' or \'-help\' for help.\n");
 }
 
 void test_case_11(struct TestCase *test_case)
 {
     test_case->input_count = 1;
     test_case->input       = assemble_input(test_case->input_count, "/ 4");
-    sprintf(test_case->expected_output, "Incomplete expression.\n");
+    sprintf(test_case->expected_output, "Incomplete expression. Use \'-h\' or \'-help\' for help.\n");
+}
+
+#define COLOR_BOLD  "\033[1m"
+#define COLOR_OFF   "\033[m"
+
+void test_case_12(struct TestCase *test_case)
+{
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(test_case->input_count, "-h");
+    sprintf(test_case->expected_output, COLOR_BOLD "NAME\n"
+                                        "\tmath" COLOR_OFF " - command line calculator\n"
+                                        COLOR_BOLD "\nSYNOPSIS\n" COLOR_OFF
+                                        COLOR_BOLD "\tmath " COLOR_OFF "<" COLOR_BOLD "expression" COLOR_OFF ">\n"
+                                        COLOR_BOLD "\nDESCRIPTION\n" COLOR_OFF
+                                        "\tCalculates and displays the result of the mathematical expression <" COLOR_BOLD "expression" COLOR_OFF ">.\n"
+                                        "\tInput operands can be whole numbers or decimal numbers. A single decimal number operand,\n"
+                                        "\tregardless of the number of whole number operands, will make the result a decimal\n"
+                                        "\tnumber.\n"
+                                        "\n\t<" COLOR_BOLD "expression" COLOR_OFF "> may contain spaces. If <" COLOR_BOLD "expression" COLOR_OFF "> contains characters \'/\' or \'*\', it\n"
+                                        "\tmust be wrapped in double quotes (eg: "COLOR_BOLD"\""COLOR_OFF"<"COLOR_BOLD"expression"COLOR_OFF">"COLOR_BOLD"\""COLOR_OFF").\n"
+                                        "\n\tSupported operations are:"
+                                        "\n\t\t" COLOR_BOLD "+" COLOR_OFF " - addition"
+                                        "\n\t\t" COLOR_BOLD "-" COLOR_OFF " - subtraction"
+                                        "\n\t\t" COLOR_BOLD "*" COLOR_OFF " - multiplication"
+                                        "\n\t\t" COLOR_BOLD "/" COLOR_OFF " - division"
+                                        "\n\t\t" COLOR_BOLD "^" COLOR_OFF " - exponentiation\n"
+                                        COLOR_BOLD "\nEXAMPLES\n" COLOR_OFF
+                                        "\tmath 3+4\n\tmath 3 + 4\n\tmath 3*4\n\tmath \"3 * 4\"\n\tmath \"((-20 - 2) * 4.5) / 11)\"\n");
+}
+
+void test_case_13(struct TestCase *test_case)
+{
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(test_case->input_count, "-help");
+    sprintf(test_case->expected_output, COLOR_BOLD "NAME\n"
+                                        "\tmath" COLOR_OFF " - command line calculator\n"
+                                        COLOR_BOLD "\nSYNOPSIS\n" COLOR_OFF
+                                        COLOR_BOLD "\tmath " COLOR_OFF "<" COLOR_BOLD "expression" COLOR_OFF ">\n"
+                                        COLOR_BOLD "\nDESCRIPTION\n" COLOR_OFF
+                                        "\tCalculates and displays the result of the mathematical expression <" COLOR_BOLD "expression" COLOR_OFF ">.\n"
+                                        "\tInput operands can be whole numbers or decimal numbers. A single decimal number operand,\n"
+                                        "\tregardless of the number of whole number operands, will make the result a decimal\n"
+                                        "\tnumber.\n"
+                                        "\n\t<" COLOR_BOLD "expression" COLOR_OFF "> may contain spaces. If <" COLOR_BOLD "expression" COLOR_OFF "> contains characters \'/\' or \'*\', it\n"
+                                        "\tmust be wrapped in double quotes (eg: "COLOR_BOLD"\""COLOR_OFF"<"COLOR_BOLD"expression"COLOR_OFF">"COLOR_BOLD"\""COLOR_OFF").\n"
+                                        "\n\tSupported operations are:"
+                                        "\n\t\t" COLOR_BOLD "+" COLOR_OFF " - addition"
+                                        "\n\t\t" COLOR_BOLD "-" COLOR_OFF " - subtraction"
+                                        "\n\t\t" COLOR_BOLD "*" COLOR_OFF " - multiplication"
+                                        "\n\t\t" COLOR_BOLD "/" COLOR_OFF " - division"
+                                        "\n\t\t" COLOR_BOLD "^" COLOR_OFF " - exponentiation\n"
+                                        COLOR_BOLD "\nEXAMPLES\n" COLOR_OFF
+                                        "\tmath 3+4\n\tmath 3 + 4\n\tmath 3*4\n\tmath \"3 * 4\"\n\tmath \"((-20 - 2) * 4.5) / 11)\"\n");
+}
+
+void test_case_14(struct TestCase *test_case)
+{
+    test_case->input_count = 0;
+    test_case->input       = assemble_input(test_case->input_count);
+    sprintf(test_case->expected_output, COLOR_BOLD "NAME\n"
+                                        "\tmath" COLOR_OFF " - command line calculator\n"
+                                        COLOR_BOLD "\nSYNOPSIS\n" COLOR_OFF
+                                        COLOR_BOLD "\tmath " COLOR_OFF "<" COLOR_BOLD "expression" COLOR_OFF ">\n"
+                                        COLOR_BOLD "\nDESCRIPTION\n" COLOR_OFF
+                                        "\tCalculates and displays the result of the mathematical expression <" COLOR_BOLD "expression" COLOR_OFF ">.\n"
+                                        "\tInput operands can be whole numbers or decimal numbers. A single decimal number operand,\n"
+                                        "\tregardless of the number of whole number operands, will make the result a decimal\n"
+                                        "\tnumber.\n"
+                                        "\n\t<" COLOR_BOLD "expression" COLOR_OFF "> may contain spaces. If <" COLOR_BOLD "expression" COLOR_OFF "> contains characters \'/\' or \'*\', it\n"
+                                        "\tmust be wrapped in double quotes (eg: "COLOR_BOLD"\""COLOR_OFF"<"COLOR_BOLD"expression"COLOR_OFF">"COLOR_BOLD"\""COLOR_OFF").\n"
+                                        "\n\tSupported operations are:"
+                                        "\n\t\t" COLOR_BOLD "+" COLOR_OFF " - addition"
+                                        "\n\t\t" COLOR_BOLD "-" COLOR_OFF " - subtraction"
+                                        "\n\t\t" COLOR_BOLD "*" COLOR_OFF " - multiplication"
+                                        "\n\t\t" COLOR_BOLD "/" COLOR_OFF " - division"
+                                        "\n\t\t" COLOR_BOLD "^" COLOR_OFF " - exponentiation\n"
+                                        COLOR_BOLD "\nEXAMPLES\n" COLOR_OFF
+                                        "\tmath 3+4\n\tmath 3 + 4\n\tmath 3*4\n\tmath \"3 * 4\"\n\tmath \"((-20 - 2) * 4.5) / 11)\"\n");
 }
 
 char **assemble_input(size_t num_args, ...)
@@ -382,7 +481,8 @@ void report(struct TestCase *test_cases)
             }
             printf("]\n\tExpected output: %s\tActual output: %s",
                    (test_cases + offset)->expected_output, (test_cases + offset)->actual_output);
-        } else {
+        } else
+        {
             printf("[:] Test %d passed.\n", offset);
         }
     }
