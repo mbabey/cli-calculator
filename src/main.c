@@ -60,8 +60,16 @@ typedef struct
 } List;
 
 /**
+ * Check input for help requests.
+ * @param argc the number of arguments
+ * @param argv the arguments
+ * @return truthy if help requested, falsy otherwise
+ */
+int help(int argc, char **argv);
+
+/**
  * Tokenize an input string expression.
- * @param arg_count the number of expression-related command line arguments.
+ * @param arg_count the number of expression-related command line arguments
  * @param expression the input string expression
  * @return a doubly linked list of tokens
  */
@@ -166,13 +174,19 @@ void free_ast(Node *ast_root);
 
 int main(int argc, char **argv)
 {
+    if (help(argc, argv))
+    {
+        return 0;
+    }
+    
     List *tokens = tokenize(argc - 1, argv + 1);
     
     char *error = validate(tokens);
     
     if (error)
     {
-        printf("%s\n", error);
+        printf("%s\n"
+               "Use \'-h\' or \'-help\' for help.\n", error);
         free(error);
     } else
     {
@@ -180,6 +194,38 @@ int main(int argc, char **argv)
     }
     
     free_list(tokens);
+    
+    return 0;
+}
+
+#define COLOR_BOLD  "\033[1m"
+#define COLOR_OFF   "\033[m"
+
+int help(int argc, char **argv)
+{
+    if (argc < 2 || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-help") == 0))
+    {
+        printf(COLOR_BOLD "NAME\n"
+               "\tmath" COLOR_OFF " - command line calculator\n"
+               COLOR_BOLD "\nSYNOPSIS\n" COLOR_OFF
+               COLOR_BOLD "\tmath " COLOR_OFF "<" COLOR_BOLD "expression" COLOR_OFF ">\n"
+               COLOR_BOLD "\nDESCRIPTION\n" COLOR_OFF
+               "\tCalculates and displays the result of the mathematical expression <" COLOR_BOLD "expression" COLOR_OFF ">.\n"
+               "\tInput operands can be whole numbers or decimal numbers. A single decimal number operand,\n"
+               "\tregardless of the number of whole number operands, will make the result a decimal\n"
+               "\tnumber.\n"
+               "\n\t<" COLOR_BOLD "expression" COLOR_OFF "> may contain spaces. If <" COLOR_BOLD "expression" COLOR_OFF "> contains characters \'/\' or \'*\', it\n"
+               "\tmust be wrapped in double quotes (eg: "COLOR_BOLD"\""COLOR_OFF"<"COLOR_BOLD"expression"COLOR_OFF">"COLOR_BOLD"\""COLOR_OFF").\n"
+               "\n\tSupported operations are:"
+               "\n\t\t" COLOR_BOLD "+" COLOR_OFF " - addition"
+               "\n\t\t" COLOR_BOLD "-" COLOR_OFF " - subtraction"
+               "\n\t\t" COLOR_BOLD "*" COLOR_OFF " - multiplication"
+               "\n\t\t" COLOR_BOLD "/" COLOR_OFF " - division"
+               "\n\t\t" COLOR_BOLD "^" COLOR_OFF " - exponentiation\n"
+               COLOR_BOLD "\nEXAMPLES\n" COLOR_OFF
+               "\tmath 3+4\n\tmath 3 + 4\n\tmath 3*4\n\tmath \"3 * 4\"\n\tmath \"((-20 - 2) * 4.5) / 11)\"\n");
+        return 1;
+    }
     
     return 0;
 }
