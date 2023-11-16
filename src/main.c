@@ -461,12 +461,12 @@ Node *primary(Node **curr)
     if ((*curr)->token.type == lparen_t)
     {
         *curr = (*curr)->right;
+        node = expression(curr);
         Node *rparen = (*curr);
         while (rparen && rparen->token.type != rparen_t)
         {
             rparen = rparen->right;
         }
-        node         = expression(curr);
         *curr = rparen;
         return node;
     }

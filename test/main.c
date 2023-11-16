@@ -11,7 +11,7 @@
 #define MATH_PROGRAM_FILENAME "/Users/mud/Projects/cProjects/cmd-line-calculator/math"
 
 /** The number of test cases. */
-#define NUM_TESTS 15
+#define NUM_TESTS 16
 
 /**
  * Stores test parameters. input is argv for the tested program. Expected output can
@@ -122,6 +122,12 @@ void test_case_13(struct TestCase *test_case);
 void test_case_14(struct TestCase *test_case);
 
 /**
+ * Test right-aligned nested parenthesis
+ * @param test_case the TestCase to load
+ */
+void test_case_15(struct TestCase *test_case);
+
+/**
  * Given a list of string arguments, create a argument vector. Prefixes the name of the
  * program being tested and suffixes NULL.
  * @param num_args the number of args
@@ -205,6 +211,7 @@ struct TestCase *create_test_cases(void)
     test_case_12(test_cases + offset++);
     test_case_13(test_cases + offset++);
     test_case_14(test_cases + offset++);
+    test_case_15(test_cases + offset++);
     
     return test_cases;
 }
@@ -379,6 +386,16 @@ void test_case_14(struct TestCase *test_case)
                                         COLOR_BOLD "\nEXAMPLES\n" COLOR_OFF
                                         "\tmath 3+4\n\tmath 3 + 4\n\tmath 3*4\n\tmath \"3 * 4\"\n\tmath \"((-20 - 2) * 4.5) / 11)\"\n");
 }
+
+
+void test_case_15(struct TestCase *test_case)
+{
+    double ans = (2.5 * (-20 - 2)) + 14;
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(test_case->input_count, "(2.5 * (-20 - 2)) + 14");
+    sprintf(test_case->expected_output, "%lf\n", ans);
+}
+
 
 char **assemble_input(size_t num_args, ...)
 {
