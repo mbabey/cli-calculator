@@ -400,7 +400,7 @@ Node *term(Node **curr)
     
     node = factor(curr);
     
-    while ((*curr)->right && ((*curr)->right->token.type == add_t || (*curr)->right->token.type == sub_t))
+    while (*curr && (*curr)->right && ((*curr)->right->token.type == add_t || (*curr)->right->token.type == sub_t))
     {
         Node *left = node;
         node = malloc(sizeof(Node));
@@ -420,7 +420,7 @@ Node *factor(Node **curr)
     
     node = expo(curr);
     
-    while ((*curr)->right && ((*curr)->right->token.type == mult_t || (*curr)->right->token.type == divi_t))
+    while (*curr && (*curr)->right && ((*curr)->right->token.type == mult_t || (*curr)->right->token.type == divi_t))
     {
         Node *left = node;
         node = malloc(sizeof(Node));
@@ -440,7 +440,7 @@ Node *expo(Node **curr)
     
     node = primary(curr);
     
-    while ((*curr)->right && (*curr)->right->token.type == exp_t)
+    while (*curr && (*curr)->right && (*curr)->right->token.type == exp_t)
     {
         Node *left = node;
         node = malloc(sizeof(Node));
@@ -462,12 +462,19 @@ Node *primary(Node **curr)
     {
         *curr = (*curr)->right;
         node = expression(curr);
+        // Consume right parenthesis.
         Node *rparen = (*curr);
-        while (rparen && rparen->token.type != rparen_t)
+        while (rparen->token.type != rparen_t)
         {
             rparen = rparen->right;
         }
-        *curr = rparen;
+        *curr = rparen->left;
+        (*curr)->right = rparen->right;
+        if ((*curr)->right)
+        {
+            (*curr)->right->left = *curr;
+        }
+        free(rparen);
         return node;
     }
     
