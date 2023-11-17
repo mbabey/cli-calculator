@@ -65,7 +65,7 @@ typedef struct
  * @param argv the arguments
  * @return truthy if help requested, falsy otherwise
  */
-int help(int argc, char **argv);
+static int help(int argc, char **argv);
 
 /**
  * Tokenize an input string expression.
@@ -73,27 +73,27 @@ int help(int argc, char **argv);
  * @param expression the input string expression
  * @return a doubly linked list of tokens
  */
-List *tokenize(int arg_count, char **expression);
+static List *tokenize(int arg_count, char **expression);
 
 /**
  * Add a Node to the tail of a doubly linked list
  * @param list the list to which the node will be added
  * @param node the node to add
  */
-void add_node_to_list(List *list, Node *node);
+static void add_node_to_list(List *list, Node *node);
 
 /**
  * Validate the user input. Return a relevant error message if an error is found.
  * @param tokens the tokens to validate
  * @return an error message if an error is found, otherwise NULL
  */
-char *validate(List *tokens);
+static char *validate(List *tokens);
 
 /**
  * Parse and evaluate validated tokens.
  * @param tokens the valid list of tokens
  */
-void execute(List *tokens);
+static void execute(List *tokens);
 
 /**
  * Parse tokens and create an abstract syntax tree based on the following grammar:
@@ -105,49 +105,49 @@ void execute(List *tokens);
  * @param tokens the tokens to parse
  * @return an abstract syntax tree representation of the tokens
  */
-Node *parse(List *tokens);
+static Node *parse(List *tokens);
 
 /**
  * Parse an expression from the input.
  * @param curr the current token
  * @return the root Node of the expression
  */
-Node *expression(Node **curr);
+static Node *expression(Node **curr);
 
 /**
  * Parse a term from an expression.
  * @param curr the current token
  * @return the root Node of the term
  */
-Node *term(Node **curr);
+static Node *term(Node **curr);
 
 /**
  * Parse a factor from a term.
  * @param curr the current token
  * @return the root Node of the factor
  */
-Node *factor(Node **curr);
+static Node *factor(Node **curr);
 
 /**
  * Parse an expo from an factor.
  * @param curr the current token
  * @return the root Node of the factor
  */
-Node *expo(Node **curr);
+static Node *expo(Node **curr);
 
 /**
  * Parse a primary from an expo.
  * @param curr the current token
  * @return the primary as a Node, or the root Node of a parenthesized expression
  */
-Node *primary(Node **curr);
+static Node *primary(Node **curr);
 
 /**
  * Get the result of evaluating the expression stored in the abstract syntax tree.
  * @param node the abstract syntax tree
  * @return pointer to a Token holding the evaluation.
  */
-Token *evaluate(Node *node);
+static Token *evaluate(Node *node);
 
 /**
  * Perform a mathematical operation based on the parameter Tokens and store the result in left.
@@ -158,19 +158,19 @@ Token *evaluate(Node *node);
  * @param left Token holding the left operand
  * @param right Token holding the right operand
  */
-void do_math(Token *operation, Token *left, Token *right);
+static void do_math(Token *operation, Token *left, Token *right);
 
 /**
  * Free a doubly linked list.
  * @param list the list to free.
  */
-void free_list(List *list);
+static void free_list(List *list);
 
 /**
  * Free an abstract syntax tree.
  * @param ast_root the root node of the tree to free.
  */
-void free_ast(Node *ast_root);
+static void free_ast(Node *ast_root);
 
 #define HELP_NOTE "Use 'math -h' or 'math -help' for help."
 
