@@ -172,6 +172,8 @@ void free_list(List *list);
  */
 void free_ast(Node *ast_root);
 
+#define HELP_NOTE "Use 'math -h' or 'math -help' for help."
+
 int main(int argc, char **argv)
 {
     if (help(argc, argv))
@@ -185,7 +187,7 @@ int main(int argc, char **argv)
     
     if (error)
     {
-        printf("%s Use \'-h\' or \'-help\' for help.\n", error);
+        printf("%s " HELP_NOTE "\n", error);
         free(error);
     } else
     {
@@ -202,11 +204,16 @@ int main(int argc, char **argv)
 
 int help(int argc, char **argv)
 {
-    if (argc < 2 || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-help") == 0))
+    if (argc < 2)
     {
-        printf(COLOR_BOLD "NAME\n"
-               "\tmath" COLOR_OFF " - command line calculator\n"
-               COLOR_BOLD "\nSYNOPSIS\n" COLOR_OFF
+        printf("Argument(s) required. " HELP_NOTE "\n");
+        return 1;
+    }
+    
+    if ((strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-help") == 0))
+    {
+        printf(COLOR_BOLD "\nmath" COLOR_OFF " - command line calculator\n"
+               COLOR_BOLD "\nUSAGE\n" COLOR_OFF
                COLOR_BOLD "\tmath " COLOR_OFF "<" COLOR_BOLD "expression" COLOR_OFF ">\n"
                COLOR_BOLD "\nDESCRIPTION\n" COLOR_OFF
                "\tCalculates and displays the result of the mathematical expression <" COLOR_BOLD "expression" COLOR_OFF ">.\n"
@@ -222,7 +229,7 @@ int help(int argc, char **argv)
                "\n\t\t" COLOR_BOLD "/" COLOR_OFF " - division"
                "\n\t\t" COLOR_BOLD "^" COLOR_OFF " - exponentiation\n"
                COLOR_BOLD "\nEXAMPLES\n" COLOR_OFF
-               "\tmath 3+4\n\tmath 3 + 4\n\tmath 3*4\n\tmath \"3 * 4\"\n\tmath \"((-20 - 2) * 4.5) / 11)\"\n");
+               "\tmath 3+4\n\tmath 3 + 4\n\tmath 3*4\n\tmath \"3 * 4\"\n\tmath \"((-20 - 2) * 4.5) / 11)\"\n\n");
         return 1;
     }
     
@@ -235,7 +242,7 @@ int help(int argc, char **argv)
 
 List *tokenize(int arg_count, char **expression)
 {
-    List *tokens = malloc(sizeof(List));;
+    List *tokens = malloc(sizeof(List));
     tokens->head = NULL;
     tokens->tail = NULL;
     for (int i = 0; i < arg_count; ++i)
@@ -265,7 +272,7 @@ List *tokenize(int arg_count, char **expression)
                     t.value.l = strtol(buf, NULL, 10);
                     t.type    = long_t;
                 }
-            } else
+            } else // is not numeric
             {
                 t.value.l = 0;
                 switch (curr[j++])
@@ -325,7 +332,6 @@ void add_node_to_list(List *list, Node *node)
 
 char *validate(List *tokens)
 {
-    // Scan the list. Count the number of parens. Count the number of operators.
     int paren_balance = 0;
     int op_balance    = 0;
     
@@ -462,7 +468,7 @@ Node *primary(Node **curr)
     {
         *curr = (*curr)->right;
         node = expression(curr);
-        // Consume right parenthesis.
+        // Move curr forward and consume right parenthesis.
         Node *rparen = (*curr);
         while (rparen->token.type != rparen_t)
         {
