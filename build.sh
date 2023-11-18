@@ -15,11 +15,11 @@ cleanup() {
 }
 
 math_test() {
-  test_source="test/main.c dasda"
+  test_source="test/main.c"
   test_output_name="math_test"
 
   $compiler -o "$test_output_name" "$test_source"
-  if ! command; then
+  if [ $? -ne 0 ]; then
     echo "Test program compilation failed."
     return 1
   fi

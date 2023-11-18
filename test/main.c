@@ -1,9 +1,9 @@
-#include <stdio.h>
-#include <unistd.h>
+#include <errno.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <unistd.h>
 
 #include "testcases.h"
 
@@ -11,7 +11,7 @@
  * Create TestCase structs testing program.
  * @return array of TestCases
  */
-static struct TestCase *create_test_cases(void);
+static struct TestCase *create_test_cases(char *program_path);
 
 /**
  * Duplicate stdout to a pipe, then run each test in test_cases. Repair stdout after all tests have run.
@@ -41,16 +41,22 @@ static int report(struct TestCase *test_cases);
  */
 static void free_test_cases(struct TestCase *test_cases);
 
-int main(void)
+int main(int argc, char **argv)
 {
-    struct TestCase *test_cases = create_test_cases();
+    if (argc < 2)
+    {
+        printf("Include program to test as first argument.");
+        return 1;
+    }
+    
+    struct TestCase *test_cases = create_test_cases(argv[1]);
     if (!test_cases)
     {
         return 1;
     }
     
     pid_t id = run_tests(test_cases);
-    int tests_failed;
+    int tests_failed = 0;
     
     if (id > 0)
     {
@@ -67,30 +73,30 @@ int main(void)
     return tests_failed;
 }
 
-struct TestCase *create_test_cases(void)
+struct TestCase *create_test_cases(char *program_path)
 {
     struct TestCase *test_cases;
     
     test_cases = malloc(sizeof(struct TestCase) * NUM_TESTS);
     
     int offset = 0;
-    test_case_0(test_cases + offset++);
-    test_case_1(test_cases + offset++);
-    test_case_2(test_cases + offset++);
-    test_case_3(test_cases + offset++);
-    test_case_4(test_cases + offset++);
-    test_case_5(test_cases + offset++);
-    test_case_6(test_cases + offset++);
-    test_case_7(test_cases + offset++);
-    test_case_8(test_cases + offset++);
-    test_case_9(test_cases + offset++);
-    test_case_10(test_cases + offset++);
-    test_case_11(test_cases + offset++);
-    test_case_12(test_cases + offset++);
-    test_case_13(test_cases + offset++);
-    test_case_14(test_cases + offset++);
-    test_case_15(test_cases + offset++);
-    test_case_16(test_cases + offset++);
+    test_case_0(test_cases + offset++, program_path);
+    test_case_1(test_cases + offset++, program_path);
+    test_case_2(test_cases + offset++, program_path);
+    test_case_3(test_cases + offset++, program_path);
+    test_case_4(test_cases + offset++, program_path);
+    test_case_5(test_cases + offset++, program_path);
+    test_case_6(test_cases + offset++, program_path);
+    test_case_7(test_cases + offset++, program_path);
+    test_case_8(test_cases + offset++, program_path);
+    test_case_9(test_cases + offset++, program_path);
+    test_case_10(test_cases + offset++, program_path);
+    test_case_11(test_cases + offset++, program_path);
+    test_case_12(test_cases + offset++, program_path);
+    test_case_13(test_cases + offset++, program_path);
+    test_case_14(test_cases + offset++, program_path);
+    test_case_15(test_cases + offset++, program_path);
+    test_case_16(test_cases + offset++, program_path);
 
     return test_cases;
 }
@@ -132,7 +138,7 @@ pid_t run_test(struct TestCase *test_case, int pipe_r)
     id = fork();
     if (id == 0) // Child.
     {
-        ret_val = execv(MATH_PROGRAM_FILENAME, test_case->input);
+        ret_val = execv(*(test_case->input), test_case->input);
         if (ret_val == -1)
         {
             fprintf(stderr, "Error %d: %s\n", errno, strerror(errno));
@@ -197,7 +203,6 @@ void free_test_cases(struct TestCase *test_cases)
 {
     for (int offset = NUM_TESTS - 1; offset >= 0; --offset)
     {
-        free(*((test_cases + offset)->input));
         free((test_cases + offset)->input);
     }
     free(test_cases);
