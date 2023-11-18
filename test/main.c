@@ -33,7 +33,7 @@ static pid_t run_test(struct TestCase *test_case, int pipe_r);
  * Report the results of the tests. Failed tests will be reported in detail.
  * @param test_cases the array of TestCases
  */
-static void report(struct TestCase *test_cases);
+static int report(struct TestCase *test_cases);
 
 /**
  * Free the array of TestCases.
@@ -50,10 +50,11 @@ int main(void)
     }
     
     pid_t id = run_tests(test_cases);
+    int tests_failed;
     
     if (id > 0)
     {
-        report(test_cases);
+        tests_failed = report(test_cases);
     }
     
     free_test_cases(test_cases);
@@ -63,7 +64,7 @@ int main(void)
         return 1;
     }
     
-    return 0;
+    return tests_failed;
 }
 
 struct TestCase *create_test_cases(void)
@@ -155,7 +156,7 @@ pid_t run_test(struct TestCase *test_case, int pipe_r)
     return id;
 }
 
-void report(struct TestCase *test_cases)
+int report(struct TestCase *test_cases)
 {
     bool all_passed;
     int  num_passed;
@@ -188,6 +189,8 @@ void report(struct TestCase *test_cases)
     {
         printf("%d/%d tests passed.\n", num_passed, NUM_TESTS);
     }
+    
+    return NUM_TESTS - num_passed;
 }
 
 void free_test_cases(struct TestCase *test_cases)
