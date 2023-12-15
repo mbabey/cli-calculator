@@ -16,27 +16,27 @@ rm -rf cli-calculator
 ```
 
 ### Usage
-math &lt;expression&gt;
+`math &lt;expression&gt;`
 
 ### Description
-Calculates and displays the result of the mathematical expression &lt;expression&gt;.
+Calculates and displays the result of the mathematical expression `&lt;expression&gt;`.
 Input operands can be whole numbers or decimal numbers. A single decimal number operand,
 regardless of the number of whole number operands, will make the result a decimal
 number.
 
-&lt;expression&gt; may contain spaces. If &lt;expression&gt; contains characters '/' or '*', it
-must be wrapped in double quotes (eg: "&lt;expression&gt;").
+`&lt;expression&gt;` may contain spaces. If `&lt;expression&gt;` contains characters `/` or `*`, it
+must be wrapped in double quotes (eg: `"&lt;expression&gt;"`).
 
 Supported operations are:
-- addition (**+**)
-- subtraction (**-**)
-- multiplication (**&ast;**)
-- division (**/**)
-- exponentiation (**^**)
+- `+` addition 
+- `-` subtraction
+- `*` multiplication
+- `/` division
+- `^` exponentiation
 
 ### Example Usage
 - `math 3+4`
 - `math 3 + 4`
-- `math 3*4`
+- `math "3*4"`
 - `math "3 * 4"`
 - `math "((-20 - 2) * 4.5) / 11)"`
