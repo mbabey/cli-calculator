@@ -18,7 +18,7 @@ struct TestCase
 };
 
 /** The number of test cases. */
-#define NUM_TESTS 17
+#define NUM_TESTS 19
 
 /**
  * Given a list of string arguments, create a argument vector. Prefixes the name of the
@@ -29,145 +29,6 @@ struct TestCase
  */
 static char **assemble_input(char *program_path, size_t num_args, ...);
 
-/**
- * Test order of operations.
- * @param test_case the TestCase to load
- */
-static void test_case_0(struct TestCase *test_case, char *program_path)
-{
-    long ans = 1 + 2 - 3 * 4 / 5;
-    test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "1 + 2 - 3 * 4 / 5");
-    sprintf(test_case->expected_output, "%ld\n", ans);
-}
-
-/**
- * Test parentheses.
- * @param test_case the TestCase to load
- */
-static void test_case_1(struct TestCase *test_case, char *program_path)
-{
-    long ans = (6000 - 321) / 11;
-    test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "(6000 - 321) / 11");
-    sprintf(test_case->expected_output, "%ld\n", ans);
-}
-
-/**
- * Test multiple argv.
- * @param test_case the TestCase to load
- */
-static void test_case_2(struct TestCase *test_case, char *program_path)
-{
-    long ans = 2 * 3 * 4 * 5;
-    test_case->input_count = 7;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "2", "*", "3", "*", "4", "*", "5");
-    sprintf(test_case->expected_output, "%ld\n", ans);
-}
-
-/**
- * Test operation containing both doubles and longs.
- * @param test_case the TestCase to load
- */
-static void test_case_3(struct TestCase *test_case, char *program_path)
-{
-    double ans = (6000.0 - 321.0) / 11;
-    test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "(6000.0 - 321.0) / 11");
-    sprintf(test_case->expected_output, "%lf\n", ans);
-}
-
-/**
- * Test 0.
- * @param test_case the TestCase to load
- */
-static void test_case_4(struct TestCase *test_case, char *program_path)
-{
-    long ans = 0;
-    test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "0");
-    sprintf(test_case->expected_output, "%ld\n", ans);
-}
-
-/**
- * Test negative number.
- * @param test_case the TestCase to load
- */
-static void test_case_5(struct TestCase *test_case, char *program_path)
-{
-    long ans = -69 + 420;
-    test_case->input_count = 2;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "-69", " +420");
-    sprintf(test_case->expected_output, "%ld\n", ans);
-}
-
-/**
- * Test nested parentheses.
- * @param test_case the TestCase to load
- */
-static void test_case_6(struct TestCase *test_case, char *program_path)
-{
-    long ans = (42 * (62 + 20));
-    test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "(42 * (62 + 20))");
-    sprintf(test_case->expected_output, "%ld\n", ans);
-}
-
-/**
- * Test nested parentheses.
- * @param test_case the TestCase to load
- */
-static void test_case_7(struct TestCase *test_case, char *program_path)
-{
-    double ans = ((-20 - 2) / 2.5) + 14;
-    test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "((-20 - 2) / 2.5) + 14");
-    sprintf(test_case->expected_output, "%lf\n", ans);
-}
-
-/**
- * Test unmatched left parentheses.
- * @param test_case the TestCase to load
- */
-static void test_case_8(struct TestCase *test_case, char *program_path)
-{
-    test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "(20 * 8");
-    sprintf(test_case->expected_output, "Unmatched \'(\' in expression. Use 'math -h' or 'math -help' for help.\n");
-}
-
-/**
- * Test unmatched right parentheses.
- * @param test_case the TestCase to load
- */
-static void test_case_9(struct TestCase *test_case, char *program_path)
-{
-    test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "20 * 8)");
-    sprintf(test_case->expected_output, "Unmatched \')\' in expression. Use 'math -h' or 'math -help' for help.\n");
-}
-
-/**
- * Test unmatched left unmatched primary. "4 /"
- * @param test_case the TestCase to load
- */
-static void test_case_10(struct TestCase *test_case, char *program_path)
-{
-    test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "4 /");
-    sprintf(test_case->expected_output, "Incomplete expression. Use 'math -h' or 'math -help' for help.\n");
-}
-
-/**
- * Test unmatched right unmatched primary. "/ 4"
- * @param test_case the TestCase to load
- */
-static void test_case_11(struct TestCase *test_case, char *program_path)
-{
-    test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "/ 4");
-    sprintf(test_case->expected_output, "Incomplete expression. Use 'math -h' or 'math -help' for help.\n");
-}
 
 #define COLOR_BOLD  "\033[1m"
 #define COLOR_OFF   "\033[m"
@@ -190,13 +51,12 @@ COLOR_BOLD "\nDESCRIPTION\n" COLOR_OFF \
 COLOR_BOLD "\nEXAMPLES\n" COLOR_OFF \
 "\tmath 3+4\n\tmath 3 + 4\n\tmath 3*4\n\tmath \"3 * 4\"\n\tmath \"((-20 - 2) * 4.5) / 11)\"\n\n"
 
-
 /**
  * Test help with "-h"
  * @param test_case the TestCase to load
  */
 
-static void test_case_12(struct TestCase *test_case, char *program_path)
+static void test_case_1(struct TestCase *test_case, char *program_path)
 {
     test_case->input_count = 1;
     test_case->input       = assemble_input(program_path, test_case->input_count, "-h");
@@ -207,7 +67,7 @@ static void test_case_12(struct TestCase *test_case, char *program_path)
  * Test help with "-help"
  * @param test_case the TestCase to load
  */
-static void test_case_13(struct TestCase *test_case, char *program_path)
+static void test_case_2(struct TestCase *test_case, char *program_path)
 {
     test_case->input_count = 1;
     test_case->input       = assemble_input(program_path, test_case->input_count, "-help");
@@ -218,7 +78,7 @@ static void test_case_13(struct TestCase *test_case, char *program_path)
  * Test help with less than 2 args.
  * @param test_case the TestCase to load
  */
-static void test_case_14(struct TestCase *test_case, char *program_path)
+static void test_case_3(struct TestCase *test_case, char *program_path)
 {
     test_case->input_count = 0;
     test_case->input       = assemble_input(program_path, test_case->input_count);
@@ -226,10 +86,130 @@ static void test_case_14(struct TestCase *test_case, char *program_path)
 }
 
 /**
- * Test right-aligned nested parenthesis
+ * Test multiple argv.
  * @param test_case the TestCase to load
  */
-static void test_case_15(struct TestCase *test_case, char *program_path)
+static void test_case_4(struct TestCase *test_case, char *program_path)
+{
+    long ans = 2 * 3 * 4 * 5;
+    test_case->input_count = 7;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "2", "*", "3", "*", "4", "*", "5");
+    sprintf(test_case->expected_output, "%ld\n", ans);
+}
+
+/**
+ * Test 0.
+ * @param test_case the TestCase to load
+ */
+static void test_case_5(struct TestCase *test_case, char *program_path)
+{
+    long ans = 0;
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "0");
+    sprintf(test_case->expected_output, "%ld\n", ans);
+}
+
+/**
+ * Test order of operations.
+ * @param test_case the TestCase to load
+ */
+static void test_case_6(struct TestCase *test_case, char *program_path)
+{
+    long ans = 1 + 2 - 3 * 4 / 5;
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "1 + 2 - 3 * 4 / 5");
+    sprintf(test_case->expected_output, "%ld\n", ans);
+}
+
+/**
+ * Test decimal interpretation and calculation.
+ * @param test_case the TestCase to load
+ */
+static void test_case_7(struct TestCase *test_case, char *program_path)
+{
+    double ans = 6000.0 - 321.0 / 11;
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "(6000.0 - 321.0) / 11");
+    sprintf(test_case->expected_output, "%lf\n", ans);
+}
+
+/**
+ * Test negative number interpretation.
+ * @param test_case the TestCase to load
+ */
+static void test_case_8(struct TestCase *test_case, char *program_path)
+{
+    long ans = -321;
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "-321)");
+    sprintf(test_case->expected_output, "%ld\n", ans);
+}
+
+/**
+ * Test negative number interpretation and calculation.
+ * @param test_case the TestCase to load
+ */
+static void test_case_9(struct TestCase *test_case, char *program_path)
+{
+    long ans = -69 - -420;
+    test_case->input_count = 2;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "-69", " --420");
+    sprintf(test_case->expected_output, "%ld\n", ans);
+}
+
+/**
+ * Test negative number interpretation and subtraction with no spaces.
+ * @param test_case the TestCase to load
+ */
+static void test_case_10(struct TestCase *test_case, char *program_path)
+{
+    long ans = 123 - 321;
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "123-321)");
+    sprintf(test_case->expected_output, "%ld\n", ans);
+}
+
+/**
+ * Test parentheses.
+ * @param test_case the TestCase to load
+ */
+static void test_case_11(struct TestCase *test_case, char *program_path)
+{
+    long ans = (6000 - 321) / 11;
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "(6000 - 321) / 11");
+    sprintf(test_case->expected_output, "%ld\n", ans);
+}
+
+/**
+ * Test nested parentheses, centered.
+ * @param test_case the TestCase to load
+ */
+static void test_case_12(struct TestCase *test_case, char *program_path)
+{
+    long ans = (42 * (62 + 20) - -420);
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "(42 * (62 + 20) - -420)");
+    sprintf(test_case->expected_output, "%ld\n", ans);
+}
+
+/**
+ * Test nested parentheses, left bias.
+ * @param test_case the TestCase to load
+ */
+static void test_case_13(struct TestCase *test_case, char *program_path)
+{
+    double ans = ((-20 - 2) / 2.5) + 14;
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "((-20 - 2) / 2.5) + 14");
+    sprintf(test_case->expected_output, "%lf\n", ans);
+}
+
+/**
+ * Test nested parenthesis, right bias.
+ * @param test_case the TestCase to load
+ */
+static void test_case_14(struct TestCase *test_case, char *program_path)
 {
     double ans = (2.5 * (-20 - 2)) + 14;
     test_case->input_count = 1;
@@ -241,7 +221,7 @@ static void test_case_15(struct TestCase *test_case, char *program_path)
  * Test a lot of nested expressions.
  * @param test_case the TestCase to load
  */
-static void test_case_16(struct TestCase *test_case, char *program_path)
+static void test_case_15(struct TestCase *test_case, char *program_path)
 {
     double ans = ((88 - 87) * 1.25 * (-2 - 2) - (3 + 4 * (69 - -200) * 0.01) * 10);
     test_case->input_count = 1;
@@ -251,15 +231,47 @@ static void test_case_16(struct TestCase *test_case, char *program_path)
 }
 
 /**
- * Test subtraction with no spaces
+ * Test unmatched left parentheses.
+ * @param test_case the TestCase to load
+ */
+static void test_case_16(struct TestCase *test_case, char *program_path)
+{
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "(20 * 8");
+    sprintf(test_case->expected_output, "Unmatched \'(\' in expression. Use 'math -h' or 'math -help' for help.\n");
+}
+
+/**
+ * Test unmatched right parentheses.
  * @param test_case the TestCase to load
  */
 static void test_case_17(struct TestCase *test_case, char *program_path)
 {
-    long ans = 123-321;
     test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "123-321)");
-    sprintf(test_case->expected_output, "%ld\n", ans);
+    test_case->input       = assemble_input(program_path, test_case->input_count, "20 * 8)");
+    sprintf(test_case->expected_output, "Unmatched \')\' in expression. Use 'math -h' or 'math -help' for help.\n");
+}
+
+/**
+ * Test unmatched left unmatched primary. "4 /"
+ * @param test_case the TestCase to load
+ */
+static void test_case_18(struct TestCase *test_case, char *program_path)
+{
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "4 /");
+    sprintf(test_case->expected_output, "Incomplete expression. Use 'math -h' or 'math -help' for help.\n");
+}
+
+/**
+ * Test unmatched right unmatched primary. "/ 4"
+ * @param test_case the TestCase to load
+ */
+static void test_case_19(struct TestCase *test_case, char *program_path)
+{
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "/ 4");
+    sprintf(test_case->expected_output, "Incomplete expression. Use 'math -h' or 'math -help' for help.\n");
 }
 
 char **assemble_input(char *program_path, size_t num_args, ...)
