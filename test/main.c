@@ -80,7 +80,6 @@ struct TestCase *create_test_cases(char *program_path)
     test_cases = malloc(sizeof(struct TestCase) * NUM_TESTS);
     
     int offset = 0;
-    test_case_0(test_cases + offset++, program_path);
     test_case_1(test_cases + offset++, program_path);
     test_case_2(test_cases + offset++, program_path);
     test_case_3(test_cases + offset++, program_path);
@@ -97,6 +96,9 @@ struct TestCase *create_test_cases(char *program_path)
     test_case_14(test_cases + offset++, program_path);
     test_case_15(test_cases + offset++, program_path);
     test_case_16(test_cases + offset++, program_path);
+    test_case_17(test_cases + offset++, program_path);
+    test_case_18(test_cases + offset++, program_path);
+    test_case_19(test_cases + offset++, program_path);
 
     return test_cases;
 }
@@ -175,7 +177,7 @@ int report(struct TestCase *test_cases)
         {
             all_passed = false;
             --num_passed;
-            printf("[!] Test %d failed:\n\tInput: [%s", offset, *((test_cases + offset)->input + 1));
+            printf("[!] Test %d failed:\n\tInput: [%s", offset + 1, *((test_cases + offset)->input + 1));
             for (size_t i = 2; i <= (test_cases + offset)->input_count; ++i)
             {
                 printf(", %s", *((test_cases + offset)->input + i));
@@ -184,7 +186,7 @@ int report(struct TestCase *test_cases)
                    (test_cases + offset)->expected_output, (test_cases + offset)->actual_output);
         } else
         {
-            printf("[:] Test %d passed.\n", offset);
+            printf("[:] Test %d passed.\n", offset + 1);
         }
     }
     

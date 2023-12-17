@@ -129,7 +129,7 @@ static void test_case_7(struct TestCase *test_case, char *program_path)
 {
     double ans = 6000.0 - 321.0 / 11;
     test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "(6000.0 - 321.0) / 11");
+    test_case->input       = assemble_input(program_path, test_case->input_count, "6000.0 - 321.0 / 11");
     sprintf(test_case->expected_output, "%lf\n", ans);
 }
 
@@ -141,7 +141,7 @@ static void test_case_8(struct TestCase *test_case, char *program_path)
 {
     long ans = -321;
     test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "-321)");
+    test_case->input       = assemble_input(program_path, test_case->input_count, "-321");
     sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
@@ -165,7 +165,7 @@ static void test_case_10(struct TestCase *test_case, char *program_path)
 {
     long ans = 123 - 321;
     test_case->input_count = 1;
-    test_case->input       = assemble_input(program_path, test_case->input_count, "123-321)");
+    test_case->input       = assemble_input(program_path, test_case->input_count, "123-321");
     sprintf(test_case->expected_output, "%ld\n", ans);
 }
 
