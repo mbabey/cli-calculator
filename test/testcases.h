@@ -250,6 +250,18 @@ static void test_case_16(struct TestCase *test_case, char *program_path)
     sprintf(test_case->expected_output, "%lf\n", ans);
 }
 
+/**
+ * Test subtraction with no spaces
+ * @param test_case the TestCase to load
+ */
+static void test_case_17(struct TestCase *test_case, char *program_path)
+{
+    long ans = 123-321;
+    test_case->input_count = 1;
+    test_case->input       = assemble_input(program_path, test_case->input_count, "123-321)");
+    sprintf(test_case->expected_output, "%ld\n", ans);
+}
+
 char **assemble_input(char *program_path, size_t num_args, ...)
 {
     char **input_array = malloc(sizeof(char *) * (num_args + 2));

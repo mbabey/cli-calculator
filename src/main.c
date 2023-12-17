@@ -236,8 +236,8 @@ int help(int argc, char **argv)
     return 0;
 }
 
-#define IS_NUMERIC(num_str) \
-    isdigit((num_str)[j]) || (num_str)[j] == '.' || ((num_str)[j] == '-' && isdigit((num_str)[j + 1]))
+#define IS_NUMERIC(num_str, i) \
+    isdigit((num_str)[(i)]) || (num_str)[(i)] == '.' || ((num_str)[(i)] == '-' && isdigit((num_str)[(i) + 1]))
 #define NUM_BUF_SIZE 16 // Support up to 15-digit numerical values.
 
 List *tokenize(int arg_count, char **expression)
@@ -253,12 +253,12 @@ List *tokenize(int arg_count, char **expression)
         {
             Token t;
             
-            if (IS_NUMERIC(curr))
+            if (IS_NUMERIC(curr, j))
             {
                 char buf[NUM_BUF_SIZE] = {'\0'};
                 int  buf_i             = 0;
                 bool is_dub = false;
-                while (buf_i < NUM_BUF_SIZE && (IS_NUMERIC(curr)))
+                while (buf_i < NUM_BUF_SIZE && (IS_NUMERIC(curr, j)))
                 {
                     if (curr[j] == '.') is_dub = true;
                     buf[buf_i++] = curr[j++];
