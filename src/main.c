@@ -237,7 +237,9 @@ int help(int argc, char **argv)
 }
 
 #define IS_NUMERIC(num_str, i) \
-    isdigit((num_str)[(i)]) || (num_str)[(i)] == '.' || ((num_str)[(i)] == '-' && isdigit((num_str)[(i) + 1]))
+    (isdigit((num_str)[(i)]) || (num_str)[(i)] == '.' || IS_NEGATIVE((num_str), (i)))
+#define IS_NEGATIVE(num_str, i) \
+    ((num_str)[(i)] == '-' && isdigit((num_str)[(i) + 1]) && !(((i) - 1 >= 0) && isdigit((num_str)[(i)])))
 #define NUM_BUF_SIZE 16 // Support up to 15-digit numerical values.
 
 List *tokenize(int arg_count, char **expression)
@@ -316,6 +318,7 @@ List *tokenize(int arg_count, char **expression)
     
     return tokens;
 }
+
 
 void add_node_to_list(List *list, Node *node)
 {
